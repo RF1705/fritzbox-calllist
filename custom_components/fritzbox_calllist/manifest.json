@@ -7,6 +7,7 @@
   "documentation": "https://github.com/RF1705/fritzbox-calllist",
   "integration_type": "hub",
   "iot_class": "local_push",
+  "issue_tracker": "https://github.com/RF1705/fritzbox-calllist/issues",
   "requirements": [],
-  "version": "0.2.1"
+  "version": "0.2.2"
 }
