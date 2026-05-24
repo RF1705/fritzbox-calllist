@@ -1,4 +1,4 @@
-"""Sensor platform for Telefon Feed."""
+"""Sensor platform for FRITZ!Box Calllist."""
 
 from __future__ import annotations
 
@@ -10,9 +10,11 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import Event, HomeAssistant, State, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.storage import Store
 
 from .const import (
     CALL_STATES,
@@ -54,32 +56,52 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Telefon Feed sensor."""
-    async_add_entities([TelefonFeedSensor(hass, entry)], True)
+    """Set up FRITZ!Box Calllist sensor."""
+    async_add_entities([FritzboxCalllistSensor(hass, entry)], True)
 
 
-class TelefonFeedSensor(SensorEntity, RestoreEntity):
-    """Telefon Feed sensor."""
+class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
+    """FRITZ!Box Calllist sensor."""
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:phone-log"
+    _attr_should_poll = False
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         self.hass = hass
         self.entry = entry
-        self._attr_name = entry.data.get(CONF_NAME, "Telefon Feed")
-        self._attr_unique_id = f"{entry.entry_id}_telefon_feed"
+        self._attr_name = None
+        self._attr_suggested_object_id = "fritzbox_calllist"
+        self._attr_unique_id = f"{entry.entry_id}_fritzbox_calllist"
         self._callmonitor_entity = entry.data[CONF_CALLMONITOR_ENTITY]
         self._max_items = int(entry.data.get(CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS))
         self._history: list[dict[str, Any]] = []
-        self._state = datetime.now(timezone.utc).timestamp()
+        self._last_updated = datetime.now(timezone.utc)
         self._remove_listener = None
+        self._store: Store[list[dict[str, Any]]] = Store(
+            hass,
+            1,
+            f"{DOMAIN}_{entry.entry_id}_history",
+        )
 
     @property
-    def native_value(self) -> float:
-        """Return the current timestamp as sensor state."""
-        return self._state
+    def device_info(self) -> DeviceInfo:
+        """Return the integration device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.entry.entry_id)},
+            name=self.entry.title,
+            manufacturer="RF1705",
+            model="Calllist",
+        )
+
+    @property
+    def native_value(self) -> str:
+        """Return a readable call list state."""
+        state = self.hass.states.get(self._callmonitor_entity)
+        if state is not None and state.state in CALL_STATES:
+            return state.state
+        return ENDED_STATE
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -90,11 +112,14 @@ class TelefonFeedSensor(SensorEntity, RestoreEntity):
             "history": self._history,
             "live": live,
             "is_active": live is not None,
+            "last_updated": self._last_updated.isoformat(),
         }
 
     async def async_added_to_hass(self) -> None:
         """Restore and start listening."""
-        if last_state := await self.async_get_last_state():
+        if stored_history := await self._store.async_load():
+            self._history = stored_history[: self._max_items]
+        elif last_state := await self.async_get_last_state():
             restored_history = last_state.attributes.get("history")
             if isinstance(restored_history, list):
                 self._history = restored_history[: self._max_items]
@@ -104,6 +129,7 @@ class TelefonFeedSensor(SensorEntity, RestoreEntity):
             [self._callmonitor_entity],
             self._async_callmonitor_changed,
         )
+        self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
         """Clean up listener."""
@@ -124,8 +150,9 @@ class TelefonFeedSensor(SensorEntity, RestoreEntity):
             entry = self._entry_from_finished_call(old_state)
             if entry is not None:
                 self._history = [entry.as_dict(), *self._history][: self._max_items]
+                self.hass.async_create_task(self._store.async_save(self._history))
 
-        self._state = datetime.now(timezone.utc).timestamp()
+        self._last_updated = datetime.now(timezone.utc)
         self.async_write_ha_state()
 
     def _build_live_call(self) -> dict[str, Any] | None:
@@ -232,4 +259,3 @@ def _format_duration(seconds: int) -> str:
     if hours:
         return f"{hours:d}:{minutes:02d}:{rest:02d}"
     return f"{minutes:d}:{rest:02d}"
-

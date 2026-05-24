@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Telefon Feed einrichten",
+        "title": "FRITZ!Box Calllist einrichten",
         "description": "Waehle deinen FRITZ!Box-Callmonitor-Sensor aus.",
         "data": {
           "name": "Name",
