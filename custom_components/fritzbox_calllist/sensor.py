@@ -1,4 +1,4 @@
-"""Sensor platform for Telefon Feed."""
+"""Sensor platform for FRITZ!Box Calllist."""
 
 from __future__ import annotations
 
@@ -55,12 +55,12 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Telefon Feed sensor."""
-    async_add_entities([TelefonFeedSensor(hass, entry)], True)
+    """Set up FRITZ!Box Calllist sensor."""
+    async_add_entities([FritzboxCalllistSensor(hass, entry)], True)
 
 
-class TelefonFeedSensor(SensorEntity, RestoreEntity):
-    """Telefon Feed sensor."""
+class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
+    """FRITZ!Box Calllist sensor."""
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:phone-log"
@@ -70,8 +70,8 @@ class TelefonFeedSensor(SensorEntity, RestoreEntity):
         self.hass = hass
         self.entry = entry
         self._attr_name = None
-        self._attr_suggested_object_id = "telefon_feed"
-        self._attr_unique_id = f"{entry.entry_id}_telefon_feed"
+        self._attr_suggested_object_id = "fritzbox_calllist"
+        self._attr_unique_id = f"{entry.entry_id}_fritzbox_calllist"
         self._callmonitor_entity = entry.data[CONF_CALLMONITOR_ENTITY]
         self._max_items = int(entry.data.get(CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS))
         self._history: list[dict[str, Any]] = []
@@ -85,7 +85,7 @@ class TelefonFeedSensor(SensorEntity, RestoreEntity):
             identifiers={(DOMAIN, self.entry.entry_id)},
             name=self.entry.title,
             manufacturer="RF1705",
-            model="Call Monitor Feed",
+            model="Calllist",
         )
 
     @property

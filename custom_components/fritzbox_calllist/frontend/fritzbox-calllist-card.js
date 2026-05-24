@@ -1,7 +1,7 @@
-class TelefonFeedCard extends HTMLElement {
+class FritzboxCalllistCard extends HTMLElement {
   static getStubConfig() {
     return {
-      entity: "sensor.telefon_feed",
+      entity: "sensor.fritzbox_calllist",
       title: "Telefon",
       max_items: 4,
     };
@@ -9,7 +9,7 @@ class TelefonFeedCard extends HTMLElement {
 
   setConfig(config) {
     if (!config.entity) {
-      throw new Error("Bitte eine Telefon-Feed-Entity angeben.");
+      throw new Error("Please provide a FRITZ!Box Calllist entity.");
     }
 
     this.config = {
@@ -257,11 +257,17 @@ class TelefonFeedCard extends HTMLElement {
   }
 }
 
-customElements.define("telefon-feed-card", TelefonFeedCard);
+if (!customElements.get("fritzbox-calllist-card")) {
+  customElements.define("fritzbox-calllist-card", FritzboxCalllistCard);
+}
+
+if (!customElements.get("telefon-feed-card")) {
+  customElements.define("telefon-feed-card", FritzboxCalllistCard);
+}
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "telefon-feed-card",
-  name: "Telefon Feed Card",
-  description: "Zeigt Live-Anrufe und den Telefonverlauf aus der Telefon-Feed-Integration.",
+  type: "fritzbox-calllist-card",
+  name: "FRITZ!Box Calllist Card",
+  description: "Shows live calls and call history from the FRITZ!Box Calllist integration.",
 });

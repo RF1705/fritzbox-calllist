@@ -1,4 +1,4 @@
-"""Telefon Feed integration."""
+"""FRITZ!Box Calllist integration."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from .const import DOMAIN
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 FRONTEND_PATH = Path(__file__).parent / "frontend"
-FRONTEND_URL = "/telefon_feed/telefon-feed-card.js"
+FRONTEND_URL = "/fritzbox_calllist/fritzbox-calllist-card.js"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -26,7 +26,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Telefon Feed from a config entry."""
+    """Set up FRITZ!Box Calllist from a config entry."""
     await _async_register_frontend(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
@@ -46,14 +46,14 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         await hass.http.async_register_static_paths(
             [
                 StaticPathConfig(
-                    "/telefon_feed",
+                    "/fritzbox_calllist",
                     str(FRONTEND_PATH),
                     cache_headers=True,
                 )
             ]
         )
     else:
-        hass.http.register_static_path("/telefon_feed", str(FRONTEND_PATH), True)
+        hass.http.register_static_path("/fritzbox_calllist", str(FRONTEND_PATH), True)
 
     if hasattr(frontend, "async_register_extra_module_url"):
         frontend.async_register_extra_module_url(hass, FRONTEND_URL)
