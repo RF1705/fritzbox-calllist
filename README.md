@@ -19,6 +19,8 @@ Telefon Feed turns an existing call monitor sensor into a small phone dashboard:
 6. Search for `Telefon Feed`.
 7. Select your FRITZ!Box call monitor sensor.
 
+Telefon Feed is a regular Home Assistant integration. It is not registered as a helper.
+
 ## Lovelace Card
 
 The card module is registered by the integration. After setup, reload Home Assistant in your browser.
@@ -66,4 +68,3 @@ Telefon Feed expects a call monitor sensor using these states:
 - `dialing`
 - `talking`
 - `idle`
-
