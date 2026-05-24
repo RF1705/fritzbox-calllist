@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import CoreState, EVENT_HOMEASSISTANT_STARTED, HomeAssistant
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
 from . import frontend
@@ -28,25 +28,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unloaded and not hass.config_entries.async_entries(DOMAIN):
+        frontend.async_unregister_card(hass)
+    return unloaded
 
 
 async def _async_register_frontend(hass: HomeAssistant) -> None:
     """Register the Lovelace card module."""
-    domain_data = hass.data.setdefault(DOMAIN, {})
-    if domain_data.get("frontend_registered") or domain_data.get("frontend_registering"):
-        return
-    domain_data["frontend_registering"] = True
-
-    async def register_frontend() -> None:
-        await frontend.JSModuleRegistration(hass).async_register()
-        hass.data[DOMAIN]["frontend_registered"] = True
-        hass.data[DOMAIN]["frontend_registering"] = False
-
-    if hass.state == CoreState.running:
-        await register_frontend()
-    else:
-        hass.bus.async_listen_once(
-            EVENT_HOMEASSISTANT_STARTED,
-            lambda _: hass.async_create_task(register_frontend()),
-        )
+    await frontend.async_register_card(hass)

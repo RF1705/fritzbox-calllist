@@ -3,11 +3,11 @@
   "name": "FRITZ!Box Calllist",
   "codeowners": [],
   "config_flow": true,
-  "dependencies": ["frontend", "http", "lovelace"],
+  "dependencies": ["frontend", "http"],
   "documentation": "https://github.com/RF1705/fritzbox-calllist",
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/RF1705/fritzbox-calllist/issues",
   "requirements": [],
-  "version": "0.2.2"
+  "version": "0.2.3"
 }

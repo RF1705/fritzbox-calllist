@@ -45,12 +45,14 @@ This project is licensed under the MIT License.
 
 ## Lovelace Card
 
-The card module is registered by the integration in Lovelace storage mode. After setup, reload Home Assistant in your browser.
+The card module is loaded by the integration through Home Assistant's frontend module registry. After setup, reload Home Assistant in your browser.
+
+The automatically loaded card may not appear in the dashboard resource list. This is expected.
 
 If the card does not appear, add this JavaScript module resource manually under **Settings > Dashboards > Resources**:
 
 ```text
-/fritzbox_calllist/fritzbox-calllist-card.js?v=0.2.2
+/fritzbox_calllist/fritzbox-calllist-card.js
 ```
 
 Then add the card to your dashboard:
