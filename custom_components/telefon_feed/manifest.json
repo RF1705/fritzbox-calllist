@@ -3,8 +3,8 @@
   "name": "Telefon Feed",
   "codeowners": [],
   "config_flow": true,
-  "documentation": "https://github.com/custom-components/telefon-feed",
-  "integration_type": "helper",
+  "documentation": "https://github.com/RF1705/telefon-feed",
+  "integration_type": "service",
   "iot_class": "local_push",
   "requirements": [],
   "version": "0.1.0"

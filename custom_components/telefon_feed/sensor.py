@@ -10,6 +10,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import Event, HomeAssistant, State, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -68,13 +69,24 @@ class TelefonFeedSensor(SensorEntity, RestoreEntity):
         """Initialize the sensor."""
         self.hass = hass
         self.entry = entry
-        self._attr_name = entry.data.get(CONF_NAME, "Telefon Feed")
+        self._attr_name = None
+        self._attr_suggested_object_id = "telefon_feed"
         self._attr_unique_id = f"{entry.entry_id}_telefon_feed"
         self._callmonitor_entity = entry.data[CONF_CALLMONITOR_ENTITY]
         self._max_items = int(entry.data.get(CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS))
         self._history: list[dict[str, Any]] = []
         self._state = datetime.now(timezone.utc).timestamp()
         self._remove_listener = None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the integration device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.entry.entry_id)},
+            name=self.entry.title,
+            manufacturer="RF1705",
+            model="Call Monitor Feed",
+        )
 
     @property
     def native_value(self) -> float:
@@ -232,4 +244,3 @@ def _format_duration(seconds: int) -> str:
     if hours:
         return f"{hours:d}:{minutes:02d}:{rest:02d}"
     return f"{minutes:d}:{rest:02d}"
-

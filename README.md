@@ -1,45 +1,69 @@
 # Telefon Feed
 
-Eine HACS-fähige Home-Assistant-Custom-Integration für FRITZ!Box-Callmonitor-Sensoren.
+A HACS-compatible Home Assistant custom integration for FRITZ!Box call monitor sensors.
 
-Du wählst nur den vorhandenen Callmonitor-Sensor aus. Die Integration erstellt daraus:
+Telefon Feed turns an existing call monitor sensor into a small phone dashboard:
 
-- einen Feed-Sensor mit Anrufverlauf
-- Live-Status für klingelnde, ausgehende und aktive Anrufe
-- Anrufdauer für Live-Anrufe und abgeschlossene Gespräche
-- eine eigene Lovelace-Karte ohne Markdown-Abhängigkeit
+- live call state for ringing, dialing and active calls
+- persistent call history
+- call duration for live and completed calls
+- a native Lovelace card, without Markdown templates
 
 ## Installation
 
-1. Dieses Repository in HACS als benutzerdefiniertes Repository hinzufügen.
-2. Kategorie `Integration` auswählen.
-3. Integration installieren.
-4. Home Assistant neu starten.
-5. Unter **Einstellungen > Geräte & Dienste > Integration hinzufügen** nach `Telefon Feed` suchen.
-6. Deinen FRITZ!Box-Callmonitor-Sensor auswählen.
+1. Add this repository to HACS as a custom repository.
+2. Select the `Integration` category.
+3. Install `Telefon Feed`.
+4. Restart Home Assistant.
+5. Go to **Settings > Devices & services > Add integration**.
+6. Search for `Telefon Feed`.
+7. Select your FRITZ!Box call monitor sensor.
 
-## Lovelace-Karte
+## Lovelace Card
 
-Nach der Einrichtung wird das Kartenmodul automatisch registriert. Falls dein Browser die Ressource noch nicht kennt, lade Home Assistant einmal hart neu.
+The card module is registered by the integration. After setup, reload Home Assistant in your browser.
 
-Falls die Karte danach noch nicht auftaucht, fuege unter **Einstellungen > Dashboards > Ressourcen** manuell diese JavaScript-Modul-Ressource hinzu:
+If the card does not appear, add this JavaScript module resource manually under **Settings > Dashboards > Resources**:
 
 ```text
 /telefon_feed/telefon-feed-card.js
 ```
 
+Then add the card to your dashboard:
+
 ```yaml
 type: custom:telefon-feed-card
 entity: sensor.telefon_feed
-title: Telefon
+title: Phone
 max_items: 4
 ```
 
-Während eines Live-Anrufs zeigt die Karte automatisch einen Eintrag weniger im Verlauf an.
+When a live call is active, the card automatically shows one fewer history item.
 
-## Optionen
+## Configuration
 
-Die Integration kann über den Konfigurationsdialog angepasst werden:
+The setup dialog asks for:
 
-- Callmonitor-Sensor
-- Anzahl gespeicherter Einträge
+- the call monitor sensor entity
+- the number of stored call entries
+
+The integration creates a Telefon Feed device and one feed sensor entity.
+
+## Sensor Attributes
+
+The feed sensor exposes these attributes:
+
+- `history`: stored call entries
+- `live`: current live call information
+- `is_active`: whether a call is currently ringing, dialing or active
+- `callmonitor_entity`: the configured source sensor
+
+## Supported Call States
+
+Telefon Feed expects a call monitor sensor using these states:
+
+- `ringing`
+- `dialing`
+- `talking`
+- `idle`
+
