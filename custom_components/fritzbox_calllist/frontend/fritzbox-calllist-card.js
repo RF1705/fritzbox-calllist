@@ -151,7 +151,16 @@ class FritzboxCalllistCard extends HTMLElement {
           margin-bottom: 12px;
         }
 
-        .live-call,
+        .live-call {
+          align-items: center;
+          color: var(--primary-text-color);
+          display: grid;
+          gap: 10px;
+          grid-template-columns: 28px 1fr;
+          min-height: 32px;
+          font-weight: 500;
+        }
+
         .history-row {
           align-items: center;
           color: var(--primary-text-color);
@@ -159,10 +168,6 @@ class FritzboxCalllistCard extends HTMLElement {
           gap: 10px;
           grid-template-columns: 28px 1fr;
           min-height: 32px;
-        }
-
-        .live-call {
-          font-weight: 500;
         }
 
         ha-icon {
@@ -178,6 +183,7 @@ class FritzboxCalllistCard extends HTMLElement {
           white-space: nowrap;
         }
 
+        .live-content,
         .history-content {
           min-width: 0;
         }
@@ -257,8 +263,10 @@ class FritzboxCalllistCard extends HTMLElement {
     return `
       <div class="live-call">
         <ha-icon class="${this.escape(live.state)}" icon="${icon}"></ha-icon>
-        <div class="label">${label}</div>
-        <div class="duration">${duration}</div>
+        <div class="live-content">
+          <div class="label">${label}</div>
+          <div class="duration">${duration}</div>
+        </div>
       </div>
     `;
   }
