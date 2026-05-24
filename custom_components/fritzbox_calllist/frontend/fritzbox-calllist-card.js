@@ -1,21 +1,88 @@
 (function () {
+const CARD_TYPE = "fritzbox-calllist-card";
+const DEFAULT_ENTITY = "sensor.fritzbox_calllist";
+const DEFAULT_MAX_ITEMS = 4;
+
+const TRANSLATIONS = {
+  de: {
+    title: "Telefon",
+    empty: "Keine Anrufe vorhanden",
+    before: "vor",
+    seconds: "sekunden",
+    minutes: "minuten",
+    hours: "stunden",
+    days: "tagen",
+    unknown: "Unbekannt",
+    ringing: "Anruf von",
+    dialing: "Anruf an",
+    talking: "Gespräch mit",
+    outgoing: "Gespräch mit",
+    incoming: "Anruf von",
+    missed: "Verpasster Anruf von",
+    notAnswered: "Nicht angenommen an",
+    errorEntity: "Bitte eine FRITZ!Box-Calllist-Entity angeben.",
+    editorEntity: "Entity",
+    editorTitle: "Titel",
+    editorMaxItems: "Einträge",
+    editorLanguage: "Sprache",
+    langAuto: "Automatisch",
+    langGerman: "Deutsch",
+    langEnglish: "Englisch",
+    cardDescription: "Zeigt Live-Anrufe und den Telefonverlauf aus der FRITZ!Box-Calllist-Integration.",
+  },
+  en: {
+    title: "Phone",
+    empty: "No calls available",
+    before: "ago",
+    seconds: "seconds",
+    minutes: "minutes",
+    hours: "hours",
+    days: "days",
+    unknown: "Unknown",
+    ringing: "Call from",
+    dialing: "Call to",
+    talking: "Call with",
+    outgoing: "Call with",
+    incoming: "Call from",
+    missed: "Missed call from",
+    notAnswered: "Not answered to",
+    errorEntity: "Please provide a FRITZ!Box Calllist entity.",
+    editorEntity: "Entity",
+    editorTitle: "Title",
+    editorMaxItems: "Entries",
+    editorLanguage: "Language",
+    langAuto: "Automatic",
+    langGerman: "German",
+    langEnglish: "English",
+    cardDescription: "Shows live calls and call history from the FRITZ!Box Calllist integration.",
+  },
+};
+
+function normalizeLanguage(value) {
+  return String(value || "en").toLowerCase().startsWith("de") ? "de" : "en";
+}
+
 class FritzboxCalllistCard extends HTMLElement {
+  static getConfigElement() {
+    return document.createElement("fritzbox-calllist-card-editor");
+  }
+
   static getStubConfig() {
     return {
-      entity: "sensor.fritzbox_calllist",
-      title: "Telefon",
-      max_items: 4,
+      entity: DEFAULT_ENTITY,
+      max_items: DEFAULT_MAX_ITEMS,
+      language: "auto",
     };
   }
 
   setConfig(config) {
     if (!config.entity) {
-      throw new Error("Please provide a FRITZ!Box Calllist entity.");
+      throw new Error(this.localize().errorEntity);
     }
 
     this.config = {
-      title: "Telefon",
-      max_items: 4,
+      max_items: DEFAULT_MAX_ITEMS,
+      language: "auto",
       ...config,
     };
   }
@@ -51,15 +118,17 @@ class FritzboxCalllistCard extends HTMLElement {
     const live = attrs.live || null;
     const isActive = Boolean(attrs.is_active && live);
     const limit = Math.max(1, Number(this.config.max_items || 4)) - (isActive ? 1 : 0);
+    const texts = this.localize();
+    const title = this.config.title || texts.title;
 
     const liveHtml = isActive ? this.renderLive(live) : "";
     const historyHtml = history.slice(0, limit).map((call) => this.renderHistory(call)).join("");
-    const emptyHtml = !isActive && !history.length ? `<div class="empty">Keine Anrufe vorhanden</div>` : "";
+    const emptyHtml = !isActive && !history.length ? `<div class="empty">${texts.empty}</div>` : "";
 
     this.innerHTML = `
       <ha-card>
         <div class="card">
-          <div class="header">${this.escape(this.config.title)}</div>
+          <div class="header">${this.escape(title)}</div>
           ${liveHtml}
           ${isActive && history.length ? `<div class="divider"></div>` : ""}
           <div class="history">${historyHtml}${emptyHtml}</div>
@@ -197,8 +266,8 @@ class FritzboxCalllistCard extends HTMLElement {
     return `
       <div class="history-row">
         <ha-icon class="${this.escape(type)}" icon="${this.historyIcon(type)}"></ha-icon>
-        <div class="label">${this.escape(call.text || "")}</div>
-        <div class="meta">vor ${this.relativeTime(call.time)}${duration}</div>
+        <div class="label">${this.historyLabel(call)}</div>
+        <div class="meta">${this.relativeTime(call.time)}${duration}</div>
       </div>
     `;
   }
@@ -217,12 +286,25 @@ class FritzboxCalllistCard extends HTMLElement {
   }
 
   liveLabel(live) {
-    const name = this.escape(live.name || "Unbekannt");
-    const number = this.escape(live.number || "Unbekannt");
+    const texts = this.localize();
+    const name = this.escape(live.name || texts.unknown);
+    const number = this.escape(live.number || texts.unknown);
 
-    if (live.state === "ringing") return `Anruf von: ${name} (${number})`;
-    if (live.state === "dialing") return `Anruf an: ${name} (${number})`;
-    return `Gespräch mit: ${name} (${number})`;
+    if (live.state === "ringing") return `${texts.ringing}: ${name} (${number})`;
+    if (live.state === "dialing") return `${texts.dialing}: ${name} (${number})`;
+    return `${texts.talking}: ${name} (${number})`;
+  }
+
+  historyLabel(call) {
+    const texts = this.localize();
+    const name = this.escape(call.name || texts.unknown);
+    const number = this.escape(call.number || texts.unknown);
+
+    if (call.type === "outgoing") return `${texts.outgoing} ${name} (${number})`;
+    if (call.type === "missed") return `${texts.missed} ${name} (${number})`;
+    if (call.type === "not_answered") return `${texts.notAnswered} ${name} (${number})`;
+    if (call.type === "incoming") return `${texts.incoming} ${name} (${number})`;
+    return this.escape(call.text || "");
   }
 
   liveDuration(live) {
@@ -244,11 +326,24 @@ class FritzboxCalllistCard extends HTMLElement {
   }
 
   relativeTime(timestamp) {
+    const texts = this.localize();
     const diff = Math.max(0, Math.floor(Date.now() / 1000 - Number(timestamp || 0)));
-    if (diff < 60) return `${diff} sekunden`;
-    if (diff < 3600) return `${Math.floor(diff / 60)} minuten`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} stunden`;
-    return `${Math.floor(diff / 86400)} tagen`;
+    let value;
+    if (diff < 60) value = `${diff} ${texts.seconds}`;
+    else if (diff < 3600) value = `${Math.floor(diff / 60)} ${texts.minutes}`;
+    else if (diff < 86400) value = `${Math.floor(diff / 3600)} ${texts.hours}`;
+    else value = `${Math.floor(diff / 86400)} ${texts.days}`;
+
+    return normalizeLanguage(this.config?.language === "auto" ? this._hass?.language : this.config?.language) === "de"
+      ? `${texts.before} ${value}`
+      : `${value} ${texts.before}`;
+  }
+
+  localize() {
+    const language = this.config?.language && this.config.language !== "auto"
+      ? this.config.language
+      : this._hass?.language;
+    return TRANSLATIONS[normalizeLanguage(language)];
   }
 
   escape(value) {
@@ -258,19 +353,118 @@ class FritzboxCalllistCard extends HTMLElement {
   }
 }
 
-const cardType = "fritzbox-calllist-card";
+class FritzboxCalllistCardEditor extends HTMLElement {
+  setConfig(config) {
+    this.config = {
+      entity: DEFAULT_ENTITY,
+      max_items: DEFAULT_MAX_ITEMS,
+      language: "auto",
+      ...config,
+    };
+    this.render();
+  }
 
-if (!customElements.get(cardType)) {
-  customElements.define(cardType, FritzboxCalllistCard);
+  set hass(hass) {
+    this._hass = hass;
+    this.render();
+  }
+
+  render() {
+    if (!this.config || !this._hass) {
+      return;
+    }
+
+    const texts = this.localize();
+    this.innerHTML = "<ha-form></ha-form>";
+
+    const form = this.querySelector("ha-form");
+    form.hass = this._hass;
+    form.data = this.config;
+    form.schema = this.schema(texts);
+    form.computeLabel = (schema) => this.computeLabel(schema, texts);
+    form.addEventListener("value-changed", (event) => {
+      event.stopPropagation();
+      this.config = event.detail.value;
+      this.dispatchEvent(
+        new CustomEvent("config-changed", {
+          detail: { config: this.config },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
+  }
+
+  schema(texts) {
+    return [
+      {
+        name: "entity",
+        required: true,
+        selector: { entity: { domain: "sensor" } },
+      },
+      {
+        name: "title",
+        selector: { text: {} },
+      },
+      {
+        name: "max_items",
+        required: true,
+        selector: {
+          number: {
+            min: 1,
+            max: 20,
+            mode: "box",
+          },
+        },
+      },
+      {
+        name: "language",
+        selector: {
+          select: {
+            options: [
+              { value: "auto", label: texts.langAuto },
+              { value: "de", label: texts.langGerman },
+              { value: "en", label: texts.langEnglish },
+            ],
+            mode: "dropdown",
+          },
+        },
+      },
+    ];
+  }
+
+  computeLabel(schema, texts) {
+    const labels = {
+      entity: texts.editorEntity,
+      title: texts.editorTitle,
+      max_items: texts.editorMaxItems,
+      language: texts.editorLanguage,
+    };
+    return labels[schema.name] || schema.name;
+  }
+
+  localize() {
+    return TRANSLATIONS[normalizeLanguage(this.config?.language === "auto" ? this._hass?.language : this.config?.language)];
+  }
+}
+
+if (!customElements.get(CARD_TYPE)) {
+  customElements.define(CARD_TYPE, FritzboxCalllistCard);
+}
+
+if (!customElements.get(`${CARD_TYPE}-editor`)) {
+  customElements.define(`${CARD_TYPE}-editor`, FritzboxCalllistCardEditor);
 }
 
 window.customCards = window.customCards || [];
 
-if (!window.customCards.some((card) => card.type === cardType)) {
+if (!window.customCards.some((card) => card.type === CARD_TYPE)) {
   window.customCards.push({
-    type: cardType,
+    type: CARD_TYPE,
     name: "FRITZ!Box Calllist Card",
-    description: "Shows live calls and call history from the FRITZ!Box Calllist integration.",
+    description: TRANSLATIONS.en.cardDescription,
+    preview: true,
+    documentationURL: "https://github.com/RF1705/fritzbox-calllist",
   });
 }
 

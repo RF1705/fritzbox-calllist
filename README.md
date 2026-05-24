@@ -62,9 +62,17 @@ type: custom:fritzbox-calllist-card
 entity: sensor.fritzbox_calllist
 title: Phone
 max_items: 4
+language: auto
 ```
 
 When a live call is active, the card automatically shows one fewer history item.
+
+The card includes a visual Lovelace editor for:
+
+- entity
+- title
+- number of visible entries
+- language (`auto`, `de`, `en`)
 
 ## Configuration
 
