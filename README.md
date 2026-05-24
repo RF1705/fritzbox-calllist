@@ -1,5 +1,10 @@
 # FRITZ!Box Calllist
 
+[![HACS](https://github.com/RF1705/fritzbox-calllist/actions/workflows/hacs.yml/badge.svg)](https://github.com/RF1705/fritzbox-calllist/actions/workflows/hacs.yml)
+[![Hassfest](https://github.com/RF1705/fritzbox-calllist/actions/workflows/hassfest.yml/badge.svg)](https://github.com/RF1705/fritzbox-calllist/actions/workflows/hassfest.yml)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-rf1705-ffdd00?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/rf1705)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A HACS-compatible Home Assistant custom integration for FRITZ!Box call monitor sensors.
 
 FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dashboard:
@@ -20,6 +25,16 @@ FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dash
 7. Select your FRITZ!Box call monitor sensor.
 
 FRITZ!Box Calllist is a regular Home Assistant integration. It is not registered as a helper.
+
+## Support
+
+If you find this integration useful, you can support the project here:
+
+[buymeacoffee.com/rf1705](https://buymeacoffee.com/rf1705)
+
+## License
+
+This project is licensed under the MIT License.
 
 ## Lovelace Card
 
