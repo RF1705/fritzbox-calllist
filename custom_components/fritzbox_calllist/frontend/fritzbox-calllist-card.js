@@ -157,7 +157,7 @@ class FritzboxCalllistCard extends HTMLElement {
           color: var(--primary-text-color);
           display: grid;
           gap: 10px;
-          grid-template-columns: 28px 1fr auto;
+          grid-template-columns: 28px 1fr;
           min-height: 32px;
         }
 
@@ -176,6 +176,10 @@ class FritzboxCalllistCard extends HTMLElement {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+        }
+
+        .history-content {
+          min-width: 0;
         }
 
         .meta,
@@ -266,8 +270,10 @@ class FritzboxCalllistCard extends HTMLElement {
     return `
       <div class="history-row">
         <ha-icon class="${this.escape(type)}" icon="${this.historyIcon(type)}"></ha-icon>
-        <div class="label">${this.historyLabel(call)}</div>
-        <div class="meta">${this.relativeTime(call.time)}${duration}</div>
+        <div class="history-content">
+          <div class="label">${this.historyLabel(call)}</div>
+          <div class="meta">${this.relativeTime(call.time)}${duration}</div>
+        </div>
       </div>
     `;
   }
@@ -361,38 +367,44 @@ class FritzboxCalllistCardEditor extends HTMLElement {
       language: "auto",
       ...config,
     };
-    this.render();
+    this.render(true);
   }
 
   set hass(hass) {
     this._hass = hass;
-    this.render();
+    this.render(false);
   }
 
-  render() {
+  render(force = false) {
     if (!this.config || !this._hass) {
       return;
     }
 
     const texts = this.localize();
-    this.innerHTML = "<ha-form></ha-form>";
+    const languageKey = normalizeLanguage(this.config?.language === "auto" ? this._hass?.language : this.config?.language);
+    const needsForm = force || !this._form || this._languageKey !== languageKey;
 
-    const form = this.querySelector("ha-form");
-    form.hass = this._hass;
-    form.data = this.config;
-    form.schema = this.schema(texts);
-    form.computeLabel = (schema) => this.computeLabel(schema, texts);
-    form.addEventListener("value-changed", (event) => {
-      event.stopPropagation();
-      this.config = event.detail.value;
-      this.dispatchEvent(
-        new CustomEvent("config-changed", {
-          detail: { config: this.config },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-    });
+    if (needsForm) {
+      this.innerHTML = "<ha-form></ha-form>";
+      this._form = this.querySelector("ha-form");
+      this._form.addEventListener("value-changed", (event) => {
+        event.stopPropagation();
+        this.config = event.detail.value;
+        this.dispatchEvent(
+          new CustomEvent("config-changed", {
+            detail: { config: this.config },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+      });
+    }
+
+    this._languageKey = languageKey;
+    this._form.hass = this._hass;
+    this._form.data = this.config;
+    this._form.schema = this.schema(texts);
+    this._form.computeLabel = (schema) => this.computeLabel(schema, texts);
   }
 
   schema(texts) {
