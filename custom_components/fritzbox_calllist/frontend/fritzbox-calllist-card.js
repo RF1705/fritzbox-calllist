@@ -1,3 +1,4 @@
+(function () {
 class FritzboxCalllistCard extends HTMLElement {
   static getStubConfig() {
     return {
@@ -257,13 +258,25 @@ class FritzboxCalllistCard extends HTMLElement {
   }
 }
 
-if (!customElements.get("fritzbox-calllist-card")) {
-  customElements.define("fritzbox-calllist-card", FritzboxCalllistCard);
+const cardType = "fritzbox-calllist-card";
+
+if (!customElements.get(cardType)) {
+  customElements.define(cardType, FritzboxCalllistCard);
 }
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "fritzbox-calllist-card",
-  name: "FRITZ!Box Calllist Card",
-  description: "Shows live calls and call history from the FRITZ!Box Calllist integration.",
-});
+
+if (!window.customCards.some((card) => card.type === cardType)) {
+  window.customCards.push({
+    type: cardType,
+    name: "FRITZ!Box Calllist Card",
+    description: "Shows live calls and call history from the FRITZ!Box Calllist integration.",
+  });
+}
+
+console.info(
+  "%cFRITZ!Box Calllist Card%c loaded",
+  "color: #0288d1; font-weight: 700",
+  "color: inherit",
+);
+})();
