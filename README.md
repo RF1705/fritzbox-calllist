@@ -62,6 +62,7 @@ type: custom:fritzbox-calllist-card
 entity: sensor.fritzbox_calllist
 title: Phone
 max_items: 4
+font_size: 14
 language: auto
 ```
 
@@ -72,6 +73,7 @@ The card includes a visual Lovelace editor for:
 - entity
 - title
 - number of visible entries
+- font size
 - language (`auto`, `de`, `en`)
 
 ## Configuration

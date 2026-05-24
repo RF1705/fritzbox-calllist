@@ -14,6 +14,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.storage import Store
 
 from .const import (
     CALL_STATES,
@@ -77,6 +78,11 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         self._history: list[dict[str, Any]] = []
         self._state = datetime.now(timezone.utc).timestamp()
         self._remove_listener = None
+        self._store: Store[list[dict[str, Any]]] = Store(
+            hass,
+            1,
+            f"{DOMAIN}_{entry.entry_id}_history",
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -106,7 +112,9 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
 
     async def async_added_to_hass(self) -> None:
         """Restore and start listening."""
-        if last_state := await self.async_get_last_state():
+        if stored_history := await self._store.async_load():
+            self._history = stored_history[: self._max_items]
+        elif last_state := await self.async_get_last_state():
             restored_history = last_state.attributes.get("history")
             if isinstance(restored_history, list):
                 self._history = restored_history[: self._max_items]
@@ -136,6 +144,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             entry = self._entry_from_finished_call(old_state)
             if entry is not None:
                 self._history = [entry.as_dict(), *self._history][: self._max_items]
+                self.hass.async_create_task(self._store.async_save(self._history))
 
         self._state = datetime.now(timezone.utc).timestamp()
         self.async_write_ha_state()

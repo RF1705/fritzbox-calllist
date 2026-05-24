@@ -2,6 +2,7 @@
 const CARD_TYPE = "fritzbox-calllist-card";
 const DEFAULT_ENTITY = "sensor.fritzbox_calllist";
 const DEFAULT_MAX_ITEMS = 4;
+const DEFAULT_FONT_SIZE = 14;
 
 const TRANSLATIONS = {
   de: {
@@ -24,6 +25,7 @@ const TRANSLATIONS = {
     editorEntity: "Entity",
     editorTitle: "Titel",
     editorMaxItems: "Einträge",
+    editorFontSize: "Schriftgröße",
     editorLanguage: "Sprache",
     langAuto: "Automatisch",
     langGerman: "Deutsch",
@@ -50,6 +52,7 @@ const TRANSLATIONS = {
     editorEntity: "Entity",
     editorTitle: "Title",
     editorMaxItems: "Entries",
+    editorFontSize: "Font size",
     editorLanguage: "Language",
     langAuto: "Automatic",
     langGerman: "German",
@@ -71,6 +74,7 @@ class FritzboxCalllistCard extends HTMLElement {
     return {
       entity: DEFAULT_ENTITY,
       max_items: DEFAULT_MAX_ITEMS,
+      font_size: DEFAULT_FONT_SIZE,
       language: "auto",
     };
   }
@@ -82,6 +86,7 @@ class FritzboxCalllistCard extends HTMLElement {
 
     this.config = {
       max_items: DEFAULT_MAX_ITEMS,
+      font_size: DEFAULT_FONT_SIZE,
       language: "auto",
       ...config,
     };
@@ -120,6 +125,7 @@ class FritzboxCalllistCard extends HTMLElement {
     const limit = Math.max(1, Number(this.config.max_items || 4)) - (isActive ? 1 : 0);
     const texts = this.localize();
     const title = this.config.title || texts.title;
+    const fontSize = Math.max(10, Math.min(24, Number(this.config.font_size || DEFAULT_FONT_SIZE)));
 
     const liveHtml = isActive ? this.renderLive(live) : "";
     const historyHtml = history.slice(0, limit).map((call) => this.renderHistory(call)).join("");
@@ -140,6 +146,7 @@ class FritzboxCalllistCard extends HTMLElement {
         }
 
         .card {
+          --fritzbox-calllist-font-size: ${fontSize}px;
           padding: 16px;
         }
 
@@ -154,6 +161,7 @@ class FritzboxCalllistCard extends HTMLElement {
         .live-call {
           align-items: center;
           color: var(--primary-text-color);
+          font-size: var(--fritzbox-calllist-font-size);
           display: grid;
           gap: 10px;
           grid-template-columns: 28px 1fr;
@@ -164,6 +172,7 @@ class FritzboxCalllistCard extends HTMLElement {
         .history-row {
           align-items: center;
           color: var(--primary-text-color);
+          font-size: var(--fritzbox-calllist-font-size);
           display: grid;
           gap: 10px;
           grid-template-columns: 28px 1fr;
@@ -177,10 +186,9 @@ class FritzboxCalllistCard extends HTMLElement {
         }
 
         .label {
+          font-size: var(--fritzbox-calllist-font-size);
           min-width: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+          overflow-wrap: anywhere;
         }
 
         .live-content,
@@ -191,17 +199,12 @@ class FritzboxCalllistCard extends HTMLElement {
         .meta,
         .duration {
           color: #7e7e7e;
-          font-size: 12px;
+          font-size: max(11px, calc(var(--fritzbox-calllist-font-size) - 2px));
           white-space: nowrap;
         }
 
         .duration {
           font-variant-numeric: tabular-nums;
-        }
-
-        .divider {
-          border-top: 1px solid rgba(127, 127, 127, 0.18);
-          margin: 12px 0;
         }
 
         .history {
@@ -372,6 +375,7 @@ class FritzboxCalllistCardEditor extends HTMLElement {
     this.config = {
       entity: DEFAULT_ENTITY,
       max_items: DEFAULT_MAX_ITEMS,
+      font_size: DEFAULT_FONT_SIZE,
       language: "auto",
       ...config,
     };
@@ -438,6 +442,18 @@ class FritzboxCalllistCardEditor extends HTMLElement {
         },
       },
       {
+        name: "font_size",
+        required: true,
+        selector: {
+          number: {
+            min: 10,
+            max: 24,
+            mode: "slider",
+            unit_of_measurement: "px",
+          },
+        },
+      },
+      {
         name: "language",
         selector: {
           select: {
@@ -458,6 +474,7 @@ class FritzboxCalllistCardEditor extends HTMLElement {
       entity: texts.editorEntity,
       title: texts.editorTitle,
       max_items: texts.editorMaxItems,
+      font_size: texts.editorFontSize,
       language: texts.editorLanguage,
     };
     return labels[schema.name] || schema.name;
