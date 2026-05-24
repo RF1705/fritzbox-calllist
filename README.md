@@ -21,12 +21,6 @@ FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dash
 
 FRITZ!Box Calllist is a regular Home Assistant integration. It is not registered as a helper.
 
-## Migration From Telefon Feed
-
-The integration domain was renamed from `telefon_feed` to `fritzbox_calllist`.
-
-If you installed an older development version, remove the old `Telefon Feed` integration first, restart Home Assistant, then install and set up `FRITZ!Box Calllist`.
-
 ## Lovelace Card
 
 The card module is registered by the integration. After setup, reload Home Assistant in your browser.

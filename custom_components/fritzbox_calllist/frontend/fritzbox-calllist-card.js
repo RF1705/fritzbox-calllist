@@ -261,10 +261,6 @@ if (!customElements.get("fritzbox-calllist-card")) {
   customElements.define("fritzbox-calllist-card", FritzboxCalllistCard);
 }
 
-if (!customElements.get("telefon-feed-card")) {
-  customElements.define("telefon-feed-card", FritzboxCalllistCard);
-}
-
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: "fritzbox-calllist-card",
