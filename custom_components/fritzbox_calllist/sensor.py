@@ -76,7 +76,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         self._callmonitor_entity = entry.data[CONF_CALLMONITOR_ENTITY]
         self._max_items = int(entry.data.get(CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS))
         self._history: list[dict[str, Any]] = []
-        self._state = datetime.now(timezone.utc).timestamp()
+        self._last_updated = datetime.now(timezone.utc)
         self._remove_listener = None
         self._store: Store[list[dict[str, Any]]] = Store(
             hass,
@@ -95,9 +95,12 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         )
 
     @property
-    def native_value(self) -> float:
-        """Return the current timestamp as sensor state."""
-        return self._state
+    def native_value(self) -> str:
+        """Return a readable call list state."""
+        state = self.hass.states.get(self._callmonitor_entity)
+        if state is not None and state.state in CALL_STATES:
+            return state.state
+        return ENDED_STATE
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -108,6 +111,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             "history": self._history,
             "live": live,
             "is_active": live is not None,
+            "last_updated": self._last_updated.isoformat(),
         }
 
     async def async_added_to_hass(self) -> None:
@@ -146,7 +150,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
                 self._history = [entry.as_dict(), *self._history][: self._max_items]
                 self.hass.async_create_task(self._store.async_save(self._history))
 
-        self._state = datetime.now(timezone.utc).timestamp()
+        self._last_updated = datetime.now(timezone.utc)
         self.async_write_ha_state()
 
     def _build_live_call(self) -> dict[str, Any] | None:
