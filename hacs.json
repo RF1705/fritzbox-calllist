@@ -1,6 +1,5 @@
 {
   "name": "FRITZ!Box Calllist",
   "render_readme": true,
-  "domains": ["fritzbox_calllist"],
   "homeassistant": "2024.6.0"
 }
