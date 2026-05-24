@@ -65,6 +65,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:phone-log"
+    _attr_should_poll = False
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
@@ -128,6 +129,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             [self._callmonitor_entity],
             self._async_callmonitor_changed,
         )
+        self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
         """Clean up listener."""
