@@ -2,21 +2,15 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from homeassistant.components import frontend
-from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CoreState, EVENT_HOMEASSISTANT_STARTED, HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
+from . import frontend
 from .const import DOMAIN
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
-
-FRONTEND_PATH = Path(__file__).parent / "frontend"
-FRONTEND_URL = "/fritzbox_calllist/fritzbox-calllist-card.js"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -39,26 +33,20 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def _async_register_frontend(hass: HomeAssistant) -> None:
     """Register the Lovelace card module."""
-    if hass.data.setdefault(DOMAIN, {}).get("frontend_registered"):
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    if domain_data.get("frontend_registered") or domain_data.get("frontend_registering"):
         return
+    domain_data["frontend_registering"] = True
 
-    if hasattr(hass.http, "async_register_static_paths"):
-        await hass.http.async_register_static_paths(
-            [
-                StaticPathConfig(
-                    "/fritzbox_calllist",
-                    str(FRONTEND_PATH),
-                    cache_headers=True,
-                )
-            ]
+    async def register_frontend() -> None:
+        await frontend.JSModuleRegistration(hass).async_register()
+        hass.data[DOMAIN]["frontend_registered"] = True
+        hass.data[DOMAIN]["frontend_registering"] = False
+
+    if hass.state == CoreState.running:
+        await register_frontend()
+    else:
+        hass.bus.async_listen_once(
+            EVENT_HOMEASSISTANT_STARTED,
+            lambda _: hass.async_create_task(register_frontend()),
         )
-    else:
-        hass.http.register_static_path("/fritzbox_calllist", str(FRONTEND_PATH), True)
-
-    if hasattr(frontend, "async_register_extra_module_url"):
-        frontend.async_register_extra_module_url(hass, FRONTEND_URL)
-    else:
-        extra_modules = hass.data.setdefault("frontend_extra_module_url", set())
-        extra_modules.add(FRONTEND_URL)
-
-    hass.data[DOMAIN]["frontend_registered"] = True
