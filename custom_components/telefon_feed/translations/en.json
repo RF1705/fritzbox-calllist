@@ -1,0 +1,15 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Telefon Feed",
+        "description": "Choose your FRITZ!Box call monitor sensor.",
+        "data": {
+          "name": "Name",
+          "callmonitor_entity": "Call monitor sensor",
+          "max_items": "Stored entries"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Telefon Feed einrichten",
+        "description": "Waehle deinen FRITZ!Box-Callmonitor-Sensor aus.",
+        "data": {
+          "name": "Name",
+          "callmonitor_entity": "Callmonitor-Sensor",
+          "max_items": "Gespeicherte Eintraege"
+        }
+      }
+    }
+  }
+}

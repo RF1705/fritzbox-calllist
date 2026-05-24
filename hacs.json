@@ -1,0 +1,6 @@
+{
+  "name": "Telefon Feed",
+  "render_readme": true,
+  "domains": ["telefon_feed"],
+  "homeassistant": "2024.6.0"
+}
