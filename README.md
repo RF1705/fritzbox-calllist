@@ -14,6 +14,7 @@ FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dash
 - live call state for ringing, dialing and active calls
 - persistent call history
 - call duration for live and completed calls
+- optional reverse lookup for unknown phone numbers
 
 ## Installation
 
@@ -59,6 +60,14 @@ The setup dialog asks for:
 
 The integration creates a FRITZ!Box Calllist device and one feed sensor entity.
 
+## Reverse Lookup
+
+The integration creates a disabled-by-default `Das Oertliche reverse lookup` switch on the FRITZ!Box Calllist device.
+
+When enabled, unknown phone numbers can be sent to `Das Oertliche` for reverse lookup. Results are cached locally in Home Assistant storage, so the same number does not need to be looked up again. If a name is found while a call is still active, the live call display is refreshed and the following history entry uses the cached name as well.
+
+This feature is opt-in because phone numbers are personal data and are sent to a third-party provider.
+
 ## Sensor Attributes
 
 The feed sensor exposes these attributes:
@@ -67,6 +76,8 @@ The feed sensor exposes these attributes:
 - `live`: current live call information
 - `is_active`: whether a call is currently ringing, dialing or active
 - `callmonitor_entity`: the configured source sensor
+- `reverse_lookup_enabled`: whether optional reverse lookup is enabled
+- `reverse_lookup_provider`: currently configured reverse lookup provider
 
 ## Supported Call States
 

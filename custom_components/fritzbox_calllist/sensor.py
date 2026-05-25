@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -20,10 +21,14 @@ from .const import (
     CALL_STATES,
     CONF_CALLMONITOR_ENTITY,
     CONF_MAX_ITEMS,
+    CONF_REVERSE_LOOKUP,
     DEFAULT_MAX_ITEMS,
+    DEFAULT_REVERSE_LOOKUP,
     DOMAIN,
     ENDED_STATE,
+    REVERSE_LOOKUP_PROVIDER,
 )
+from .reverse_lookup import async_reverse_lookup, is_unknown_name
 
 
 @dataclass
@@ -77,12 +82,19 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         self._callmonitor_entity = entry.data[CONF_CALLMONITOR_ENTITY]
         self._max_items = int(entry.data.get(CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS))
         self._history: list[dict[str, Any]] = []
+        self._lookup_cache: dict[str, str] = {}
+        self._lookup_tasks: dict[str, asyncio.Task[str | None]] = {}
         self._last_updated = datetime.now(timezone.utc)
         self._remove_listener = None
         self._store: Store[list[dict[str, Any]]] = Store(
             hass,
             1,
             f"{DOMAIN}_{entry.entry_id}_history",
+        )
+        self._lookup_store: Store[dict[str, str]] = Store(
+            hass,
+            1,
+            f"{DOMAIN}_{entry.entry_id}_reverse_lookup_cache",
         )
 
     @property
@@ -113,6 +125,8 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             "live": live,
             "is_active": live is not None,
             "last_updated": self._last_updated.isoformat(),
+            "reverse_lookup_enabled": self._is_reverse_lookup_enabled,
+            "reverse_lookup_provider": REVERSE_LOOKUP_PROVIDER,
         }
 
     async def async_added_to_hass(self) -> None:
@@ -123,6 +137,9 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             restored_history = last_state.attributes.get("history")
             if isinstance(restored_history, list):
                 self._history = restored_history[: self._max_items]
+
+        if stored_lookup_cache := await self._lookup_store.async_load():
+            self._lookup_cache = stored_lookup_cache
 
         self._remove_listener = async_track_state_change_event(
             self.hass,
@@ -140,14 +157,21 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
     @callback
     def _async_callmonitor_changed(self, event: Event) -> None:
         """Handle callmonitor state changes."""
+        self.hass.async_create_task(self._async_handle_callmonitor_changed(event))
+
+    async def _async_handle_callmonitor_changed(self, event: Event) -> None:
+        """Handle callmonitor state changes."""
         old_state: State | None = event.data.get("old_state")
         new_state: State | None = event.data.get("new_state")
 
         if new_state is None:
             return
 
+        if new_state.state in CALL_STATES:
+            self._async_start_live_lookup(new_state)
+
         if new_state.state == ENDED_STATE and old_state is not None:
-            entry = self._entry_from_finished_call(old_state)
+            entry = await self._entry_from_finished_call(old_state)
             if entry is not None:
                 self._history = [entry.as_dict(), *self._history][: self._max_items]
                 self.hass.async_create_task(self._store.async_save(self._history))
@@ -165,6 +189,8 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         call_type = _call_type_from_state(state.state, attrs)
         number = _number_from_attrs(attrs, call_type)
         name = _name_from_attrs(attrs, call_type, number)
+        if is_unknown_name(name):
+            name = self._lookup_cache.get(number, name)
         started_at = state.last_changed.timestamp()
 
         return {
@@ -176,7 +202,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             "duration": max(0, int(datetime.now(timezone.utc).timestamp() - started_at)),
         }
 
-    def _entry_from_finished_call(self, previous: State) -> CallEntry | None:
+    async def _entry_from_finished_call(self, previous: State) -> CallEntry | None:
         """Create a feed entry from the state before idle."""
         call_type = _call_type_from_state(previous.state, previous.attributes)
         if call_type is None:
@@ -184,6 +210,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
 
         number = _number_from_attrs(previous.attributes, call_type)
         name = _name_from_attrs(previous.attributes, call_type, number)
+        name = await self._async_resolve_name(name, number)
         duration = None
 
         if previous.state == "talking":
@@ -200,6 +227,67 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             name=name,
             duration=duration,
         )
+
+    async def _async_resolve_name(self, name: str, number: str) -> str:
+        """Resolve a display name using cache and optional reverse lookup."""
+        if not is_unknown_name(name):
+            return name
+
+        if cached_name := self._lookup_cache.get(number):
+            return cached_name
+
+        if not self._is_reverse_lookup_enabled:
+            return name
+
+        if lookup_name := await self._async_lookup_number(number):
+            return lookup_name
+
+        return name
+
+    def _async_start_live_lookup(self, state: State) -> None:
+        """Start live reverse lookup if needed."""
+        call_type = _call_type_from_state(state.state, state.attributes)
+        number = _number_from_attrs(state.attributes, call_type)
+        name = _name_from_attrs(state.attributes, call_type, number)
+
+        if not is_unknown_name(name) or self._lookup_cache.get(number):
+            return
+
+        if not self._is_reverse_lookup_enabled:
+            return
+
+        task = self._lookup_tasks.get(number)
+        if task is None or task.done():
+            task = self.hass.async_create_task(self._async_lookup_number(number))
+            self._lookup_tasks[number] = task
+
+        task.add_done_callback(lambda _: self.hass.loop.call_soon_threadsafe(self.async_write_ha_state))
+
+    async def _async_lookup_number(self, number: str) -> str | None:
+        """Look up and cache a phone number."""
+        if cached_name := self._lookup_cache.get(number):
+            return cached_name
+
+        if task := self._lookup_tasks.get(number):
+            if not task.done() and task is not asyncio.current_task():
+                return await task
+
+        self._lookup_tasks[number] = asyncio.current_task()
+        try:
+            lookup_name = await async_reverse_lookup(self.hass, number)
+        finally:
+            self._lookup_tasks.pop(number, None)
+
+        if lookup_name:
+            self._lookup_cache[number] = lookup_name
+            await self._lookup_store.async_save(self._lookup_cache)
+            return lookup_name
+        return None
+
+    @property
+    def _is_reverse_lookup_enabled(self) -> bool:
+        """Return true if reverse lookup is enabled."""
+        return bool(self.entry.options.get(CONF_REVERSE_LOOKUP, DEFAULT_REVERSE_LOOKUP))
 
 
 def _call_type_from_state(state: str, attrs: dict[str, Any]) -> str | None:
