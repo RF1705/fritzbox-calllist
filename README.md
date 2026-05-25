@@ -14,7 +14,6 @@ FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dash
 - live call state for ringing, dialing and active calls
 - persistent call history
 - call duration for live and completed calls
-- a native Lovelace card, without Markdown templates
 
 ## Installation
 
@@ -45,36 +44,11 @@ This project is licensed under the MIT License.
 
 ## Lovelace Card
 
-The card module is loaded by the integration through Home Assistant's frontend module registry. After setup, reload Home Assistant in your browser.
+The Lovelace card is distributed separately:
 
-The automatically loaded card may not appear in the dashboard resource list. This is expected.
+[RF1705/fritzbox-calllist-card](https://github.com/RF1705/fritzbox-calllist-card)
 
-If the card does not appear, add this JavaScript module resource manually under **Settings > Dashboards > Resources**:
-
-```text
-/fritzbox_calllist/fritzbox-calllist-card.js
-```
-
-Then add the card to your dashboard:
-
-```yaml
-type: custom:fritzbox-calllist-card
-entity: sensor.fritzbox_calllist
-title: Phone
-max_items: 4
-font_size: 14
-language: auto
-```
-
-When a live call is active, the card automatically shows one fewer history item.
-
-The card includes a visual Lovelace editor for:
-
-- entity
-- title
-- number of visible entries
-- font size
-- language (`auto`, `de`, `en`)
+Install it through HACS as a Lovelace card and point it at the sensor created by this integration.
 
 ## Configuration
 
