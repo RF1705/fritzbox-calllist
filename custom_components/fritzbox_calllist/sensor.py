@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -13,7 +14,7 @@ from homeassistant.const import CONF_NAME
 from homeassistant.core import Event, HomeAssistant, State, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.storage import Store
 
@@ -84,8 +85,10 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         self._history: list[dict[str, Any]] = []
         self._lookup_cache: dict[str, str] = {}
         self._lookup_tasks: dict[str, asyncio.Task[str | None]] = {}
+        self._active_call_state: State | None = None
         self._last_updated = datetime.now(timezone.utc)
         self._remove_listener = None
+        self._startup_refresh_unsub: list[Callable[[], None]] = []
         self._store: Store[list[dict[str, Any]]] = Store(
             hass,
             1,
@@ -146,6 +149,15 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             [self._callmonitor_entity],
             self._async_callmonitor_changed,
         )
+        self._async_refresh_current_callmonitor()
+        for delay in (5, 15):
+            self._startup_refresh_unsub.append(
+                async_call_later(
+                    self.hass,
+                    delay,
+                    lambda _now: self._async_refresh_current_callmonitor(),
+                )
+            )
         self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
@@ -153,6 +165,18 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         if self._remove_listener is not None:
             self._remove_listener()
             self._remove_listener = None
+        while self._startup_refresh_unsub:
+            self._startup_refresh_unsub.pop()()
+
+    @callback
+    def _async_refresh_current_callmonitor(self) -> None:
+        """Refresh from the current callmonitor state after startup."""
+        state = self.hass.states.get(self._callmonitor_entity)
+        if state is not None and state.state in CALL_STATES:
+            self._active_call_state = state
+            self._async_start_live_lookup(state)
+        self._last_updated = datetime.now(timezone.utc)
+        self.async_write_ha_state()
 
     @callback
     def _async_callmonitor_changed(self, event: Event) -> None:
@@ -168,10 +192,17 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             return
 
         if new_state.state in CALL_STATES:
+            self._active_call_state = new_state
             self._async_start_live_lookup(new_state)
 
-        if new_state.state == ENDED_STATE and old_state is not None:
-            entry = await self._entry_from_finished_call(old_state)
+        if new_state.state == ENDED_STATE:
+            previous = (
+                old_state
+                if old_state is not None and old_state.state in CALL_STATES
+                else self._active_call_state
+            )
+            self._active_call_state = None
+            entry = await self._entry_from_finished_call(previous) if previous is not None else None
             if entry is not None:
                 self._history = [entry.as_dict(), *self._history][: self._max_items]
                 self.hass.async_create_task(self._store.async_save(self._history))
