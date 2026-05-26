@@ -323,7 +323,7 @@ def _name_from_attrs(attrs: dict[str, Any], call_type: str | None, number: str) 
         candidates = [attrs.get("with_name"), attrs.get("from_name"), attrs.get("to_name")]
 
     for candidate in candidates:
-        if candidate and candidate not in {"Unbekannt", number}:
+        if candidate and not is_unknown_name(str(candidate)) and candidate != number:
             return str(candidate)
     return "Unbekannt"
 
