@@ -15,7 +15,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 _LOGGER = logging.getLogger(__name__)
 
 _LOOKUP_URL = "https://www.dasoertliche.de/?form_name=search_inv&ph={number}"
-_UNKNOWN_NAMES = {"", "Unbekannt", "Unknown"}
+_UNKNOWN_NAMES = {"", "unbekannt", "unknown"}
 
 
 async def async_reverse_lookup(hass: HomeAssistant, number: str) -> str | None:
@@ -47,7 +47,7 @@ async def async_reverse_lookup(hass: HomeAssistant, number: str) -> str | None:
 
 def is_unknown_name(name: str | None) -> bool:
     """Return true if the display name is unknown."""
-    return name is None or name.strip() in _UNKNOWN_NAMES
+    return name is None or name.strip().casefold() in _UNKNOWN_NAMES
 
 
 def _extract_name(html: str) -> str | None:
