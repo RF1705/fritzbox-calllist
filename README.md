@@ -5,8 +5,6 @@
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-rf1705-ffdd00?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/rf1705)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=RF1705&repository=fritzbox-calllist&category=integration)
-
 ![FRITZ!Box Calllist logo](custom_components/fritzbox_calllist/brand/icon.png)
 
 A HACS-compatible Home Assistant custom integration for FRITZ!Box call monitor sensors.
@@ -19,6 +17,12 @@ FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dash
 - optional reverse lookup for unknown phone numbers
 
 ## Installation
+
+### Install with My Home Assistant
+
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=RF1705&repository=fritzbox-calllist&category=integration)
+
+### Manual HACS installation
 
 1. Add this repository to HACS as a custom repository:
 
