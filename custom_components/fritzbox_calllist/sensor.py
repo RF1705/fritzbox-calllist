@@ -176,7 +176,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             self._active_call_state = state
             self._async_start_live_lookup(state)
         self._last_updated = datetime.now(timezone.utc)
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
     @callback
     def _async_callmonitor_changed(self, event: Event) -> None:
@@ -292,7 +292,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             task = self.hass.async_create_task(self._async_lookup_number(number))
             self._lookup_tasks[number] = task
 
-        task.add_done_callback(lambda _: self.hass.loop.call_soon_threadsafe(self.async_write_ha_state))
+        task.add_done_callback(lambda _: self.schedule_update_ha_state())
 
     async def _async_lookup_number(self, number: str) -> str | None:
         """Look up and cache a phone number."""
