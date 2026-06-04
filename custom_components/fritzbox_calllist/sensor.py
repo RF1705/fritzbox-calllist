@@ -23,13 +23,14 @@ from .const import (
     CONF_CALLMONITOR_ENTITY,
     CONF_MAX_ITEMS,
     CONF_REVERSE_LOOKUP,
+    CONF_REVERSE_LOOKUP_PROVIDERS,
     DEFAULT_MAX_ITEMS,
     DEFAULT_REVERSE_LOOKUP,
+    DEFAULT_REVERSE_LOOKUP_PROVIDERS,
     DOMAIN,
     ENDED_STATE,
-    REVERSE_LOOKUP_PROVIDER,
 )
-from .reverse_lookup import async_reverse_lookup, is_unknown_name
+from .reverse_lookup import async_reverse_lookup, is_unknown_name, normalize_provider_list
 
 
 @dataclass
@@ -129,7 +130,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             "is_active": live is not None,
             "last_updated": self._last_updated.isoformat(),
             "reverse_lookup_enabled": self._is_reverse_lookup_enabled,
-            "reverse_lookup_provider": REVERSE_LOOKUP_PROVIDER,
+            "reverse_lookup_providers": self._reverse_lookup_providers,
         }
 
     async def async_added_to_hass(self) -> None:
@@ -305,7 +306,11 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
 
         self._lookup_tasks[number] = asyncio.current_task()
         try:
-            lookup_name = await async_reverse_lookup(self.hass, number)
+            lookup_name = await async_reverse_lookup(
+                self.hass,
+                number,
+                self._reverse_lookup_providers,
+            )
         finally:
             self._lookup_tasks.pop(number, None)
 
@@ -319,6 +324,16 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
     def _is_reverse_lookup_enabled(self) -> bool:
         """Return true if reverse lookup is enabled."""
         return bool(self.entry.options.get(CONF_REVERSE_LOOKUP, DEFAULT_REVERSE_LOOKUP))
+
+    @property
+    def _reverse_lookup_providers(self) -> list[str]:
+        """Return configured reverse lookup provider order."""
+        return normalize_provider_list(
+            self.entry.options.get(
+                CONF_REVERSE_LOOKUP_PROVIDERS,
+                DEFAULT_REVERSE_LOOKUP_PROVIDERS,
+            )
+        )
 
 
 def _call_type_from_state(state: str, attrs: dict[str, Any]) -> str | None:

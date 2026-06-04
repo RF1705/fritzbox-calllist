@@ -6,9 +6,19 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_NAME
+from homeassistant.core import callback
 from homeassistant.helpers import selector
 
-from .const import CONF_CALLMONITOR_ENTITY, CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS, DOMAIN
+from .const import (
+    CONF_CALLMONITOR_ENTITY,
+    CONF_MAX_ITEMS,
+    CONF_REVERSE_LOOKUP,
+    CONF_REVERSE_LOOKUP_PROVIDERS,
+    DEFAULT_MAX_ITEMS,
+    DEFAULT_REVERSE_LOOKUP,
+    DEFAULT_REVERSE_LOOKUP_PROVIDERS,
+    DOMAIN,
+)
 
 
 class FritzboxCalllistConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -49,4 +59,51 @@ class FritzboxCalllistConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=data_schema,
             errors=errors,
+        )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: config_entries.ConfigEntry):
+        """Create the options flow."""
+        return FritzboxCalllistOptionsFlow(config_entry)
+
+
+class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
+    """Handle options for FRITZ!Box Calllist."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(self, user_input: dict | None = None):
+        """Manage integration options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        providers = self.config_entry.options.get(
+            CONF_REVERSE_LOOKUP_PROVIDERS,
+            ",".join(DEFAULT_REVERSE_LOOKUP_PROVIDERS),
+        )
+        if isinstance(providers, list):
+            providers = ",".join(providers)
+
+        data_schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_REVERSE_LOOKUP,
+                    default=self.config_entry.options.get(
+                        CONF_REVERSE_LOOKUP,
+                        DEFAULT_REVERSE_LOOKUP,
+                    ),
+                ): bool,
+                vol.Optional(
+                    CONF_REVERSE_LOOKUP_PROVIDERS,
+                    default=providers,
+                ): selector.TextSelector(),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=data_schema,
         )

@@ -14,7 +14,7 @@ FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dash
 - live call state for ringing, dialing and active calls
 - persistent call history
 - call duration for live and completed calls
-- optional reverse lookup for unknown phone numbers
+- optional reverse lookup for unknown phone numbers using a configurable provider chain
 
 ## Installation
 
@@ -68,11 +68,28 @@ The integration creates a FRITZ!Box Calllist device and one feed sensor entity.
 
 ## Reverse Lookup
 
-The integration creates a disabled-by-default `Das Oertliche reverse lookup` switch on the FRITZ!Box Calllist device.
+The integration creates a disabled-by-default `External reverse lookup` switch on the FRITZ!Box Calllist device.
 
-When enabled, unknown phone numbers can be sent to `Das Oertliche` for reverse lookup. Results are cached locally in Home Assistant storage, so the same number does not need to be looked up again. If a name is found while a call is still active, the live call display is refreshed and the following history entry uses the cached name as well.
+When enabled, unknown phone numbers can be sent to the configured providers for reverse lookup. Results are cached locally in Home Assistant storage, so the same number does not need to be looked up again. If a name is found while a call is still active, the live call display is refreshed and the following history entry uses the cached name as well.
 
 This feature is opt-in because phone numbers are personal data and are sent to a third-party provider.
+
+Default provider order:
+
+```text
+dasoertliche.de,11880.com,dasschnelle.at,herold.at,search.ch,tellows.de
+```
+
+You can change the order in the integration options. The first provider that returns a usable name wins. `tellows.de` is intentionally last by default because it is more community/spam oriented than a classic phone directory.
+
+Supported providers:
+
+- `dasoertliche.de`
+- `11880.com`
+- `dasschnelle.at`
+- `herold.at`
+- `search.ch`
+- `tellows.de`
 
 ## Sensor Attributes
 
@@ -83,7 +100,7 @@ The feed sensor exposes these attributes:
 - `is_active`: whether a call is currently ringing, dialing or active
 - `callmonitor_entity`: the configured source sensor
 - `reverse_lookup_enabled`: whether optional reverse lookup is enabled
-- `reverse_lookup_provider`: currently configured reverse lookup provider
+- `reverse_lookup_providers`: currently configured reverse lookup provider order
 
 ## Supported Call States
 

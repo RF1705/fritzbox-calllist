@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
@@ -9,7 +11,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_REVERSE_LOOKUP, DEFAULT_REVERSE_LOOKUP, DOMAIN, REVERSE_LOOKUP_PROVIDER
+from .const import (
+    CONF_REVERSE_LOOKUP,
+    CONF_REVERSE_LOOKUP_PROVIDERS,
+    DEFAULT_REVERSE_LOOKUP,
+    DEFAULT_REVERSE_LOOKUP_PROVIDERS,
+    DOMAIN,
+)
+from .reverse_lookup import normalize_provider_list
 
 
 async def async_setup_entry(
@@ -25,7 +34,7 @@ class FritzboxCalllistReverseLookupSwitch(SwitchEntity):
     """Switch for optional reverse lookup of unknown phone numbers."""
 
     _attr_has_entity_name = True
-    _attr_name = "Das Oertliche reverse lookup"
+    _attr_name = "External reverse lookup"
     _attr_icon = "mdi:account-search"
     _attr_entity_category = EntityCategory.CONFIG
 
@@ -51,9 +60,16 @@ class FritzboxCalllistReverseLookupSwitch(SwitchEntity):
         return bool(self.entry.options.get(CONF_REVERSE_LOOKUP, DEFAULT_REVERSE_LOOKUP))
 
     @property
-    def extra_state_attributes(self) -> dict[str, str]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return switch attributes."""
-        return {"provider": REVERSE_LOOKUP_PROVIDER}
+        return {
+            "providers": normalize_provider_list(
+                self.entry.options.get(
+                    CONF_REVERSE_LOOKUP_PROVIDERS,
+                    DEFAULT_REVERSE_LOOKUP_PROVIDERS,
+                )
+            )
+        }
 
     async def async_turn_on(self, **kwargs) -> None:
         """Enable reverse lookup."""
