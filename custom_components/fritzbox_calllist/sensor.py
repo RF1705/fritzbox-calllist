@@ -368,7 +368,7 @@ def _text_for_call(call_type: str, name: str, number: str, duration: int | None)
         return f"Anruf von {name} ({number}){duration_text}"
     if call_type == "missed":
         return f"Verpasster Anruf von {name} ({number})"
-    return f"Nicht angenommen an {name} ({number})"
+    return f"Nicht erreicht: {name} ({number})"
 
 
 def _format_duration(seconds: int) -> str:
