@@ -11,17 +11,5 @@
         }
       }
     }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "FRITZ!Box Calllist options",
-        "description": "External reverse lookup is optional. Phone numbers are sent to the configured providers.",
-        "data": {
-          "reverse_lookup": "Enable external reverse lookup",
-          "reverse_lookup_providers": "Provider order, comma-separated"
-        }
-      }
-    }
   }
 }

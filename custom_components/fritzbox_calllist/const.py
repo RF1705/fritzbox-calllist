@@ -8,11 +8,9 @@ DOMAIN: Final = "fritzbox_calllist"
 
 CONF_CALLMONITOR_ENTITY = "callmonitor_entity"
 CONF_MAX_ITEMS = "max_items"
-CONF_REVERSE_LOOKUP = "reverse_lookup"
-CONF_REVERSE_LOOKUP_PROVIDERS = "reverse_lookup_providers"
+CONF_REVERSE_LOOKUP_ENABLED_PROVIDERS = "reverse_lookup_enabled_providers"
 
 DEFAULT_MAX_ITEMS = 10
-DEFAULT_REVERSE_LOOKUP = False
 DEFAULT_REVERSE_LOOKUP_PROVIDERS = [
     "dasoertliche.de",
     "11880.com",

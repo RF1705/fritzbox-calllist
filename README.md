@@ -68,19 +68,19 @@ The integration creates a FRITZ!Box Calllist device and one feed sensor entity.
 
 ## Reverse Lookup
 
-The integration creates a disabled-by-default `External reverse lookup` switch on the FRITZ!Box Calllist device.
+The integration creates one disabled-by-default reverse lookup switch per provider on the FRITZ!Box Calllist device.
 
-When enabled, unknown phone numbers can be sent to the configured providers for reverse lookup. Results are cached locally in Home Assistant storage, so the same number does not need to be looked up again. If a name is found while a call is still active, the live call display is refreshed and the following history entry uses the cached name as well.
+When at least one provider switch is enabled, unknown phone numbers can be sent to the enabled providers for reverse lookup. Results are cached locally in Home Assistant storage, so the same number does not need to be looked up again. If a name is found while a call is still active, the live call display is refreshed and the following history entry uses the cached name as well.
 
 This feature is opt-in because phone numbers are personal data and are sent to a third-party provider.
 
-Default provider order:
+Provider order:
 
 ```text
 dasoertliche.de,11880.com,dasschnelle.at,herold.at,search.ch,tellows.de
 ```
 
-You can change the order in the integration options. The first provider that returns a usable name wins. `tellows.de` is intentionally last by default because it is more community/spam oriented than a classic phone directory.
+The order is fixed for now. The first enabled provider that returns a usable name wins. `tellows.de` is intentionally last because it is more community/spam oriented than a classic phone directory.
 
 Supported providers:
 
@@ -99,8 +99,7 @@ The feed sensor exposes these attributes:
 - `live`: current live call information
 - `is_active`: whether a call is currently ringing, dialing or active
 - `callmonitor_entity`: the configured source sensor
-- `reverse_lookup_enabled`: whether optional reverse lookup is enabled
-- `reverse_lookup_providers`: currently configured reverse lookup provider order
+- `reverse_lookup_providers`: currently enabled reverse lookup provider order
 
 ## Supported Call States
 

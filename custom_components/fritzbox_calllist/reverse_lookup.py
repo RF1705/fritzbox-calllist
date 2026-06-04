@@ -165,7 +165,7 @@ def normalize_provider_list(providers: list[str] | str | None) -> list[str]:
         if key and key in _PROVIDERS and key not in normalized:
             normalized.append(key)
 
-    return normalized or list(DEFAULT_REVERSE_LOOKUP_PROVIDERS)
+    return normalized
 
 
 def supported_providers() -> list[str]:

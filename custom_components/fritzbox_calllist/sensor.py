@@ -22,10 +22,8 @@ from .const import (
     CALL_STATES,
     CONF_CALLMONITOR_ENTITY,
     CONF_MAX_ITEMS,
-    CONF_REVERSE_LOOKUP,
-    CONF_REVERSE_LOOKUP_PROVIDERS,
+    CONF_REVERSE_LOOKUP_ENABLED_PROVIDERS,
     DEFAULT_MAX_ITEMS,
-    DEFAULT_REVERSE_LOOKUP,
     DEFAULT_REVERSE_LOOKUP_PROVIDERS,
     DOMAIN,
     ENDED_STATE,
@@ -129,7 +127,6 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             "live": live,
             "is_active": live is not None,
             "last_updated": self._last_updated.isoformat(),
-            "reverse_lookup_enabled": self._is_reverse_lookup_enabled,
             "reverse_lookup_providers": self._reverse_lookup_providers,
         }
 
@@ -268,7 +265,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         if cached_name := self._lookup_cache.get(number):
             return cached_name
 
-        if not self._is_reverse_lookup_enabled:
+        if not self._reverse_lookup_providers:
             return name
 
         if lookup_name := await self._async_lookup_number(number):
@@ -285,7 +282,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         if not is_unknown_name(name) or self._lookup_cache.get(number):
             return
 
-        if not self._is_reverse_lookup_enabled:
+        if not self._reverse_lookup_providers:
             return
 
         task = self._lookup_tasks.get(number)
@@ -321,18 +318,18 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         return None
 
     @property
-    def _is_reverse_lookup_enabled(self) -> bool:
-        """Return true if reverse lookup is enabled."""
-        return bool(self.entry.options.get(CONF_REVERSE_LOOKUP, DEFAULT_REVERSE_LOOKUP))
-
-    @property
     def _reverse_lookup_providers(self) -> list[str]:
         """Return configured reverse lookup provider order."""
         return normalize_provider_list(
-            self.entry.options.get(
-                CONF_REVERSE_LOOKUP_PROVIDERS,
-                DEFAULT_REVERSE_LOOKUP_PROVIDERS,
-            )
+            [
+                provider
+                for provider in DEFAULT_REVERSE_LOOKUP_PROVIDERS
+                if provider
+                in self.entry.options.get(
+                    CONF_REVERSE_LOOKUP_ENABLED_PROVIDERS,
+                    [],
+                )
+            ]
         )
 
 

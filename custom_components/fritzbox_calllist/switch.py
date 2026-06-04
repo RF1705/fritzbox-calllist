@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
@@ -12,13 +10,10 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    CONF_REVERSE_LOOKUP,
-    CONF_REVERSE_LOOKUP_PROVIDERS,
-    DEFAULT_REVERSE_LOOKUP,
+    CONF_REVERSE_LOOKUP_ENABLED_PROVIDERS,
     DEFAULT_REVERSE_LOOKUP_PROVIDERS,
     DOMAIN,
 )
-from .reverse_lookup import normalize_provider_list
 
 
 async def async_setup_entry(
@@ -27,22 +22,28 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up FRITZ!Box Calllist switches."""
-    async_add_entities([FritzboxCalllistReverseLookupSwitch(hass, entry)])
+    async_add_entities(
+        [
+            FritzboxCalllistReverseLookupProviderSwitch(hass, entry, provider)
+            for provider in DEFAULT_REVERSE_LOOKUP_PROVIDERS
+        ]
+    )
 
 
-class FritzboxCalllistReverseLookupSwitch(SwitchEntity):
-    """Switch for optional reverse lookup of unknown phone numbers."""
+class FritzboxCalllistReverseLookupProviderSwitch(SwitchEntity):
+    """Switch for one optional reverse lookup provider."""
 
     _attr_has_entity_name = True
-    _attr_name = "External reverse lookup"
     _attr_icon = "mdi:account-search"
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, provider: str) -> None:
         """Initialize the switch."""
         self.hass = hass
         self.entry = entry
-        self._attr_unique_id = f"{entry.entry_id}_reverse_lookup"
+        self.provider = provider
+        self._attr_name = f"Reverse lookup {provider}"
+        self._attr_unique_id = f"{entry.entry_id}_reverse_lookup_{provider.replace('.', '_')}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -56,32 +57,40 @@ class FritzboxCalllistReverseLookupSwitch(SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        """Return true if reverse lookup is enabled."""
-        return bool(self.entry.options.get(CONF_REVERSE_LOOKUP, DEFAULT_REVERSE_LOOKUP))
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return switch attributes."""
-        return {
-            "providers": normalize_provider_list(
-                self.entry.options.get(
-                    CONF_REVERSE_LOOKUP_PROVIDERS,
-                    DEFAULT_REVERSE_LOOKUP_PROVIDERS,
-                )
-            )
-        }
+        """Return true if this provider is enabled."""
+        return self.provider in self._enabled_providers
 
     async def async_turn_on(self, **kwargs) -> None:
-        """Enable reverse lookup."""
-        await self._async_set_enabled(True)
+        """Enable this provider."""
+        enabled_providers = self._enabled_providers
+        if self.provider not in enabled_providers:
+            enabled_providers.append(self.provider)
+        await self._async_save_enabled_providers(enabled_providers)
 
     async def async_turn_off(self, **kwargs) -> None:
-        """Disable reverse lookup."""
-        await self._async_set_enabled(False)
+        """Disable this provider."""
+        enabled_providers = self._enabled_providers
+        if self.provider in enabled_providers:
+            enabled_providers.remove(self.provider)
+        await self._async_save_enabled_providers(enabled_providers)
 
-    async def _async_set_enabled(self, enabled: bool) -> None:
-        """Persist reverse lookup setting."""
+    @property
+    def _enabled_providers(self) -> list[str]:
+        """Return enabled providers."""
+        return list(
+            self.entry.options.get(
+                CONF_REVERSE_LOOKUP_ENABLED_PROVIDERS,
+                [],
+            )
+        )
+
+    async def _async_save_enabled_providers(self, enabled_providers: list[str]) -> None:
+        """Persist enabled providers."""
         options = dict(self.entry.options)
-        options[CONF_REVERSE_LOOKUP] = enabled
+        options[CONF_REVERSE_LOOKUP_ENABLED_PROVIDERS] = [
+            provider
+            for provider in DEFAULT_REVERSE_LOOKUP_PROVIDERS
+            if provider in enabled_providers
+        ]
         self.hass.config_entries.async_update_entry(self.entry, options=options)
         self.async_write_ha_state()

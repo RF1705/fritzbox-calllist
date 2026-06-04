@@ -11,17 +11,5 @@
         }
       }
     }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "FRITZ!Box Calllist Optionen",
-        "description": "Die externe Rueckwaertssuche ist optional. Telefonnummern werden an die konfigurierten Anbieter gesendet.",
-        "data": {
-          "reverse_lookup": "Externe Rueckwaertssuche aktivieren",
-          "reverse_lookup_providers": "Anbieter-Reihenfolge, kommagetrennt"
-        }
-      }
-    }
   }
 }
