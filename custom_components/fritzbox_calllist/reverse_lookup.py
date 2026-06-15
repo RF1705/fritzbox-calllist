@@ -197,6 +197,19 @@ def _clean_name(value: str) -> str | None:
     if not name:
         return None
 
+    blocked_exact = {
+        "für sie",
+        "fuer sie",
+        "for you",
+        "mehr erfahren",
+        "kontakt",
+        "impressum",
+        "datenschutz",
+        "privacy policy",
+    }
+    if name.casefold() in blocked_exact:
+        return None
+
     blocked_parts = (
         "Das Telefonbuch",
         "Das Örtliche",
