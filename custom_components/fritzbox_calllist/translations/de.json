@@ -11,5 +11,16 @@
         }
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Reverse-Lookup-Cache verwalten",
+        "description": "Waehle einen Cache-Eintrag zum Loeschen aus oder loesche den ganzen Reverse-Lookup-Cache.",
+        "data": {
+          "cache_action": "Cache-Aktion"
+        }
+      }
+    }
   }
 }

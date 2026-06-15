@@ -74,6 +74,16 @@ When at least one provider switch is enabled, unknown phone numbers can be sent 
 
 This feature is opt-in because phone numbers are personal data and are sent to a third-party provider.
 
+### Cache Management
+
+Open the integration options via **Settings > Devices & services > FRITZ!Box Calllist > Configure** to manage cached reverse lookup names.
+
+You can:
+
+- view cached `name (number)` entries
+- delete one cached entry
+- delete the whole reverse lookup cache
+
 Provider order:
 
 ```text

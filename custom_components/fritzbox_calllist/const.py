@@ -19,6 +19,7 @@ DEFAULT_REVERSE_LOOKUP_PROVIDERS = [
     "search.ch",
     "tellows.de",
 ]
+LOOKUP_CACHE_VERSION = 1
 
 CALL_STATES = {"ringing", "dialing", "talking"}
 ENDED_STATE = "idle"

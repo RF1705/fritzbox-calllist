@@ -11,5 +11,16 @@
         }
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Manage reverse lookup cache",
+        "description": "Select a cached entry to delete or clear the whole reverse lookup cache.",
+        "data": {
+          "cache_action": "Cache action"
+        }
+      }
+    }
   }
 }

@@ -27,6 +27,7 @@ from .const import (
     DEFAULT_REVERSE_LOOKUP_PROVIDERS,
     DOMAIN,
     ENDED_STATE,
+    LOOKUP_CACHE_VERSION,
 )
 from .reverse_lookup import async_reverse_lookup, is_unknown_name, normalize_provider_list
 
@@ -62,7 +63,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up FRITZ!Box Calllist sensor."""
-    async_add_entities([FritzboxCalllistSensor(hass, entry)], True)
+    sensor = FritzboxCalllistSensor(hass, entry)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {"sensor": sensor}
+    async_add_entities([sensor], True)
 
 
 class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
@@ -95,7 +98,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         )
         self._lookup_store: Store[dict[str, str]] = Store(
             hass,
-            1,
+            LOOKUP_CACHE_VERSION,
             f"{DOMAIN}_{entry.entry_id}_reverse_lookup_cache",
         )
 
@@ -165,6 +168,13 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             self._remove_listener = None
         while self._startup_refresh_unsub:
             self._startup_refresh_unsub.pop()()
+        self.hass.data.get(DOMAIN, {}).pop(self.entry.entry_id, None)
+
+    @callback
+    def async_replace_lookup_cache(self, cache: dict[str, str]) -> None:
+        """Replace the in-memory reverse lookup cache."""
+        self._lookup_cache = cache
+        self.schedule_update_ha_state()
 
     @callback
     def _async_refresh_current_callmonitor(self) -> None:
