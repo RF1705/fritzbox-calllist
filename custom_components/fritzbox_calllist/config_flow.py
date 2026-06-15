@@ -130,7 +130,7 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
         options: list[selector.SelectOptionDict] = [
             {
                 "value": ACTION_NO_CHANGE,
-                "label": "Keine Cache-Aenderung" if german else "No cache change",
+                "label": "Keine Cache-Änderung" if german else "No cache change",
             },
         ]
         if not cache:
@@ -139,7 +139,7 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
         options.append(
             {
                 "value": ACTION_CLEAR_ALL,
-                "label": "Alle gecachten Namen loeschen" if german else "Delete all cached names",
+                "label": "Alle gecachten Namen löschen" if german else "Delete all cached names",
             }
         )
         for number, name in sorted(cache.items(), key=lambda item: item[1].casefold()):
@@ -147,7 +147,7 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
                 {
                     "value": f"{ACTION_DELETE_PREFIX}{number}",
                     "label": (
-                        f"{name} ({number}) loeschen"
+                        f"{name} ({number}) löschen"
                         if german
                         else f"Delete {name} ({number})"
                     ),

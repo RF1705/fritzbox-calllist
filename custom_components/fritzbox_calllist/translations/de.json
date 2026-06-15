@@ -16,7 +16,7 @@
     "step": {
       "init": {
         "title": "Reverse-Lookup-Cache verwalten",
-        "description": "Waehle einen Cache-Eintrag zum Loeschen aus oder loesche den ganzen Reverse-Lookup-Cache.",
+        "description": "Wähle einen Cache-Eintrag zum Löschen aus oder lösche den ganzen Reverse-Lookup-Cache.",
         "data": {
           "cache_action": "Cache-Aktion"
         }
