@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurer FRITZ!Box Calllist",
+        "description": "Choisissez votre capteur de moniteur d'appels FRITZ!Box.",
+        "data": {
+          "name": "Nom",
+          "callmonitor_entity": "Capteur du moniteur d'appels",
+          "max_items": "Entrées enregistrées"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Gérer le cache de recherche inversée",
+        "description": "Sélectionnez une entrée du cache à supprimer ou videz tout le cache de recherche inversée.",
+        "data": {
+          "cache_action": "Action du cache"
+        }
+      }
+    }
+  }
+}

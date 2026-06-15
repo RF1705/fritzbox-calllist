@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Skonfiguruj FRITZ!Box Calllist",
+        "description": "Wybierz czujnik monitora połączeń FRITZ!Box.",
+        "data": {
+          "name": "Nazwa",
+          "callmonitor_entity": "Czujnik monitora połączeń",
+          "max_items": "Zapisane wpisy"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zarządzaj pamięcią podręczną wyszukiwania wstecznego",
+        "description": "Wybierz wpis z pamięci podręcznej do usunięcia albo wyczyść całą pamięć podręczną wyszukiwania wstecznego.",
+        "data": {
+          "cache_action": "Akcja pamięci podręcznej"
+        }
+      }
+    }
+  }
+}

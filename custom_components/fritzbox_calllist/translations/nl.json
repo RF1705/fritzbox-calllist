@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "FRITZ!Box Calllist instellen",
+        "description": "Kies je FRITZ!Box oproepmonitor-sensor.",
+        "data": {
+          "name": "Naam",
+          "callmonitor_entity": "Oproepmonitor-sensor",
+          "max_items": "Opgeslagen items"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Reverse-lookup-cache beheren",
+        "description": "Selecteer een cache-item om te verwijderen of leeg de volledige reverse-lookup-cache.",
+        "data": {
+          "cache_action": "Cache-actie"
+        }
+      }
+    }
+  }
+}

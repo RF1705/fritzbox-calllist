@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Nastavit FRITZ!Box Calllist",
+        "description": "Vyberte senzor monitoru hovorů FRITZ!Box.",
+        "data": {
+          "name": "Název",
+          "callmonitor_entity": "Senzor monitoru hovorů",
+          "max_items": "Uložené záznamy"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Spravovat mezipaměť zpětného vyhledávání",
+        "description": "Vyberte položku v mezipaměti ke smazání nebo vymažte celou mezipaměť zpětného vyhledávání.",
+        "data": {
+          "cache_action": "Akce mezipaměti"
+        }
+      }
+    }
+  }
+}

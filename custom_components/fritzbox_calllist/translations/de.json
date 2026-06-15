@@ -3,11 +3,11 @@
     "step": {
       "user": {
         "title": "FRITZ!Box Calllist einrichten",
-        "description": "Waehle deinen FRITZ!Box-Callmonitor-Sensor aus.",
+        "description": "Wähle deinen FRITZ!Box-Callmonitor-Sensor aus.",
         "data": {
           "name": "Name",
           "callmonitor_entity": "Callmonitor-Sensor",
-          "max_items": "Gespeicherte Eintraege"
+          "max_items": "Gespeicherte Einträge"
         }
       }
     }

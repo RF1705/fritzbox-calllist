@@ -22,6 +22,48 @@ CONF_CACHE_ACTION = "cache_action"
 ACTION_NO_CHANGE = "__no_change__"
 ACTION_CLEAR_ALL = "__clear_all__"
 ACTION_DELETE_PREFIX = "delete:"
+CACHE_LABELS = {
+    "de": {
+        "no_change": "Keine Cache-Änderung",
+        "clear_all": "Alle gecachten Namen löschen",
+        "delete": "{name} ({number}) löschen",
+    },
+    "en": {
+        "no_change": "No cache change",
+        "clear_all": "Delete all cached names",
+        "delete": "Delete {name} ({number})",
+    },
+    "fr": {
+        "no_change": "Aucune modification du cache",
+        "clear_all": "Supprimer tous les noms en cache",
+        "delete": "Supprimer {name} ({number})",
+    },
+    "es": {
+        "no_change": "Sin cambios en la caché",
+        "clear_all": "Eliminar todos los nombres en caché",
+        "delete": "Eliminar {name} ({number})",
+    },
+    "it": {
+        "no_change": "Nessuna modifica della cache",
+        "clear_all": "Elimina tutti i nomi nella cache",
+        "delete": "Elimina {name} ({number})",
+    },
+    "nl": {
+        "no_change": "Geen cachewijziging",
+        "clear_all": "Alle namen in de cache verwijderen",
+        "delete": "{name} ({number}) verwijderen",
+    },
+    "pl": {
+        "no_change": "Bez zmian w pamięci podręcznej",
+        "clear_all": "Usuń wszystkie nazwy z pamięci podręcznej",
+        "delete": "Usuń {name} ({number})",
+    },
+    "cs": {
+        "no_change": "Bez změny mezipaměti",
+        "clear_all": "Smazat všechna jména v mezipaměti",
+        "delete": "Smazat {name} ({number})",
+    },
+}
 
 
 class FritzboxCalllistConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -126,11 +168,11 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
 
     def _cache_action_options(self, cache: dict[str, str]) -> list[selector.SelectOptionDict]:
         """Return cache action options."""
-        german = str(self.hass.config.language).lower().startswith("de")
+        labels = self._cache_labels()
         options: list[selector.SelectOptionDict] = [
             {
                 "value": ACTION_NO_CHANGE,
-                "label": "Keine Cache-Änderung" if german else "No cache change",
+                "label": labels["no_change"],
             },
         ]
         if not cache:
@@ -139,18 +181,19 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
         options.append(
             {
                 "value": ACTION_CLEAR_ALL,
-                "label": "Alle gecachten Namen löschen" if german else "Delete all cached names",
+                "label": labels["clear_all"],
             }
         )
         for number, name in sorted(cache.items(), key=lambda item: item[1].casefold()):
             options.append(
                 {
                     "value": f"{ACTION_DELETE_PREFIX}{number}",
-                    "label": (
-                        f"{name} ({number}) löschen"
-                        if german
-                        else f"Delete {name} ({number})"
-                    ),
+                    "label": labels["delete"].format(name=name, number=number),
                 }
             )
         return options
+
+    def _cache_labels(self) -> dict[str, str]:
+        """Return localized cache action labels."""
+        language = str(self.hass.config.language).lower().split("-")[0]
+        return CACHE_LABELS.get(language, CACHE_LABELS["en"])

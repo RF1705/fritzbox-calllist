@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar FRITZ!Box Calllist",
+        "description": "Elige tu sensor del monitor de llamadas FRITZ!Box.",
+        "data": {
+          "name": "Nombre",
+          "callmonitor_entity": "Sensor del monitor de llamadas",
+          "max_items": "Entradas guardadas"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Gestionar caché de búsqueda inversa",
+        "description": "Selecciona una entrada en caché para eliminarla o borra toda la caché de búsqueda inversa.",
+        "data": {
+          "cache_action": "Acción de caché"
+        }
+      }
+    }
+  }
+}
