@@ -15,12 +15,16 @@
   "options": {
     "step": {
       "init": {
-        "title": "Manage reverse lookup cache",
-        "description": "Select a cached entry to delete or clear the whole reverse lookup cache.",
+        "title": "Configure FRITZ!Box Calllist",
+        "description": "Change the call monitor sensor or manage the reverse lookup cache.",
         "data": {
+          "callmonitor_entity": "Call monitor sensor",
           "cache_action": "Cache action"
         }
       }
     }
+  },
+  "error": {
+    "callmonitor_already_configured": "This call monitor sensor is already used by another FRITZ!Box Calllist."
   }
 }

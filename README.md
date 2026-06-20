@@ -66,6 +66,13 @@ The setup dialog asks for:
 
 The integration creates a FRITZ!Box Calllist device and one feed sensor entity.
 
+Open **Settings > Devices & services > FRITZ!Box Calllist > Configure** to change
+the call monitor sensor later. Existing call history and the reverse lookup cache
+are retained.
+
+Multiple FRITZ!Box Calllist instances are supported. Each instance must use a
+different call monitor sensor; the same source sensor cannot be configured twice.
+
 ## Reverse Lookup
 
 The integration creates one disabled-by-default reverse lookup switch per provider on the FRITZ!Box Calllist device.
@@ -76,7 +83,7 @@ This feature is opt-in because phone numbers are personal data and are sent to a
 
 ### Cache Management
 
-Open the integration options via **Settings > Devices & services > FRITZ!Box Calllist > Configure** to manage cached reverse lookup names.
+The same integration options dialog can be used to manage cached reverse lookup names.
 
 You can:
 

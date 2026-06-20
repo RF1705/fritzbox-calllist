@@ -177,6 +177,24 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         self.schedule_update_ha_state()
 
     @callback
+    def async_set_callmonitor_entity(self, entity_id: str) -> None:
+        """Switch the call monitor entity without reloading the integration."""
+        if entity_id == self._callmonitor_entity:
+            return
+
+        if self._remove_listener is not None:
+            self._remove_listener()
+
+        self._callmonitor_entity = entity_id
+        self._active_call_state = None
+        self._remove_listener = async_track_state_change_event(
+            self.hass,
+            [self._callmonitor_entity],
+            self._async_callmonitor_changed,
+        )
+        self._async_refresh_current_callmonitor()
+
+    @callback
     def _async_refresh_current_callmonitor(self) -> None:
         """Refresh from the current callmonitor state after startup."""
         state = self.hass.states.get(self._callmonitor_entity)

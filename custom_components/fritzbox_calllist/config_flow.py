@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -17,6 +19,9 @@ from .const import (
     DOMAIN,
     LOOKUP_CACHE_VERSION,
 )
+
+if TYPE_CHECKING:
+    from .sensor import FritzboxCalllistSensor
 
 CONF_CACHE_ACTION = "cache_action"
 ACTION_NO_CHANGE = "__no_change__"
@@ -121,22 +126,47 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
         self._config_entry = config_entry
 
     async def async_step_init(self, user_input: dict | None = None):
-        """Manage reverse lookup cache."""
+        """Manage the call monitor entity and reverse lookup cache."""
         cache_store = Store(
             self.hass,
             LOOKUP_CACHE_VERSION,
             f"{DOMAIN}_{self._config_entry.entry_id}_reverse_lookup_cache",
         )
         cache = await cache_store.async_load() or {}
+        errors: dict[str, str] = {}
 
         if user_input is not None:
+            callmonitor_entity = user_input[CONF_CALLMONITOR_ENTITY]
+            callmonitor_changed = (
+                callmonitor_entity
+                != self._config_entry.data[CONF_CALLMONITOR_ENTITY]
+            )
+            if self._callmonitor_is_configured(callmonitor_entity):
+                errors["base"] = "callmonitor_already_configured"
+            else:
+                data = dict(self._config_entry.data)
+                data[CONF_CALLMONITOR_ENTITY] = callmonitor_entity
+                self.hass.config_entries.async_update_entry(
+                    self._config_entry,
+                    data=data,
+                    unique_id=callmonitor_entity,
+                )
+                if callmonitor_changed:
+                    sensor = self._sensor
+                    if sensor is not None:
+                        sensor.async_set_callmonitor_entity(callmonitor_entity)
+
             action = user_input.get(CONF_CACHE_ACTION, ACTION_NO_CHANGE)
             cache_changed = False
-            if action == ACTION_CLEAR_ALL:
+            if not errors and action == ACTION_CLEAR_ALL:
                 cache = {}
                 await cache_store.async_save(cache)
                 cache_changed = True
-            elif isinstance(action, str) and action.startswith(ACTION_DELETE_PREFIX):
+            elif (
+                not errors
+                and isinstance(action, str)
+                and action.startswith(ACTION_DELETE_PREFIX)
+            ):
                 number = action.removeprefix(ACTION_DELETE_PREFIX)
                 if number in cache:
                     cache.pop(number)
@@ -144,14 +174,24 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
                     cache_changed = True
 
             if cache_changed:
-                sensor = self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id, {}).get("sensor")
+                sensor = self._sensor
                 if sensor is not None:
                     sensor.async_replace_lookup_cache(cache)
 
-            return self.async_create_entry(title="", data=dict(self._config_entry.options))
+            if not errors:
+                return self.async_create_entry(
+                    title="",
+                    data=dict(self._config_entry.options),
+                )
 
         data_schema = vol.Schema(
             {
+                vol.Required(
+                    CONF_CALLMONITOR_ENTITY,
+                    default=self._config_entry.data[CONF_CALLMONITOR_ENTITY],
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor")
+                ),
                 vol.Required(CONF_CACHE_ACTION, default=ACTION_NO_CHANGE): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=self._cache_action_options(cache),
@@ -164,6 +204,24 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=data_schema,
+            errors=errors,
+        )
+
+    def _callmonitor_is_configured(self, entity_id: str) -> bool:
+        """Return whether another entry already uses the call monitor."""
+        return any(
+            entry.entry_id != self._config_entry.entry_id
+            and entry.data.get(CONF_CALLMONITOR_ENTITY) == entity_id
+            for entry in self.hass.config_entries.async_entries(DOMAIN)
+        )
+
+    @property
+    def _sensor(self) -> FritzboxCalllistSensor | None:
+        """Return the loaded call list sensor."""
+        return (
+            self.hass.data.get(DOMAIN, {})
+            .get(self._config_entry.entry_id, {})
+            .get("sensor")
         )
 
     def _cache_action_options(self, cache: dict[str, str]) -> list[selector.SelectOptionDict]:

@@ -15,12 +15,16 @@
   "options": {
     "step": {
       "init": {
-        "title": "Gérer le cache de recherche inversée",
-        "description": "Sélectionnez une entrée du cache à supprimer ou videz tout le cache de recherche inversée.",
+        "title": "Configurer FRITZ!Box Calllist",
+        "description": "Modifiez le capteur du moniteur d'appels ou gérez le cache de recherche inversée.",
         "data": {
+          "callmonitor_entity": "Capteur du moniteur d'appels",
           "cache_action": "Action du cache"
         }
       }
     }
+  },
+  "error": {
+    "callmonitor_already_configured": "Ce capteur de moniteur d'appels est déjà utilisé par une autre FRITZ!Box Calllist."
   }
 }

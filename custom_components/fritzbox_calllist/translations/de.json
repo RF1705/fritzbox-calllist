@@ -15,12 +15,16 @@
   "options": {
     "step": {
       "init": {
-        "title": "Reverse-Lookup-Cache verwalten",
-        "description": "Wähle einen Cache-Eintrag zum Löschen aus oder lösche den ganzen Reverse-Lookup-Cache.",
+        "title": "FRITZ!Box Calllist konfigurieren",
+        "description": "Ändere den Callmonitor-Sensor oder verwalte den Reverse-Lookup-Cache.",
         "data": {
+          "callmonitor_entity": "Callmonitor-Sensor",
           "cache_action": "Cache-Aktion"
         }
       }
     }
+  },
+  "error": {
+    "callmonitor_already_configured": "Dieser Callmonitor-Sensor wird bereits von einer anderen FRITZ!Box Calllist verwendet."
   }
 }

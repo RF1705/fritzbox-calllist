@@ -15,12 +15,16 @@
   "options": {
     "step": {
       "init": {
-        "title": "Zarządzaj pamięcią podręczną wyszukiwania wstecznego",
-        "description": "Wybierz wpis z pamięci podręcznej do usunięcia albo wyczyść całą pamięć podręczną wyszukiwania wstecznego.",
+        "title": "Skonfiguruj FRITZ!Box Calllist",
+        "description": "Zmień czujnik monitora połączeń lub zarządzaj pamięcią podręczną wyszukiwania wstecznego.",
         "data": {
+          "callmonitor_entity": "Czujnik monitora połączeń",
           "cache_action": "Akcja pamięci podręcznej"
         }
       }
     }
+  },
+  "error": {
+    "callmonitor_already_configured": "Ten czujnik monitora połączeń jest już używany przez inną FRITZ!Box Calllist."
   }
 }

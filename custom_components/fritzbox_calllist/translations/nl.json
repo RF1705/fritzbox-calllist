@@ -15,12 +15,16 @@
   "options": {
     "step": {
       "init": {
-        "title": "Reverse-lookup-cache beheren",
-        "description": "Selecteer een cache-item om te verwijderen of leeg de volledige reverse-lookup-cache.",
+        "title": "FRITZ!Box Calllist configureren",
+        "description": "Wijzig de oproepmonitor-sensor of beheer de reverse-lookup-cache.",
         "data": {
+          "callmonitor_entity": "Oproepmonitor-sensor",
           "cache_action": "Cache-actie"
         }
       }
     }
+  },
+  "error": {
+    "callmonitor_already_configured": "Deze oproepmonitor-sensor wordt al gebruikt door een andere FRITZ!Box Calllist."
   }
 }

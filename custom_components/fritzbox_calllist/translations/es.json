@@ -15,12 +15,16 @@
   "options": {
     "step": {
       "init": {
-        "title": "Gestionar caché de búsqueda inversa",
-        "description": "Selecciona una entrada en caché para eliminarla o borra toda la caché de búsqueda inversa.",
+        "title": "Configurar FRITZ!Box Calllist",
+        "description": "Cambia el sensor del monitor de llamadas o gestiona la caché de búsqueda inversa.",
         "data": {
+          "callmonitor_entity": "Sensor del monitor de llamadas",
           "cache_action": "Acción de caché"
         }
       }
     }
+  },
+  "error": {
+    "callmonitor_already_configured": "Este sensor del monitor de llamadas ya está siendo utilizado por otra FRITZ!Box Calllist."
   }
 }
