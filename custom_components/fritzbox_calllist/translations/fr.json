@@ -13,6 +13,9 @@
     }
   },
   "options": {
+    "error": {
+      "callmonitor_already_configured": "Ce capteur de moniteur d'appels est déjà utilisé par une autre FRITZ!Box Calllist."
+    },
     "step": {
       "init": {
         "title": "Configurer FRITZ!Box Calllist",
@@ -23,8 +26,5 @@
         }
       }
     }
-  },
-  "error": {
-    "callmonitor_already_configured": "Ce capteur de moniteur d'appels est déjà utilisé par une autre FRITZ!Box Calllist."
   }
 }

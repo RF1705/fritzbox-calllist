@@ -5,7 +5,6 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_REVERSE_LOOKUP_ENABLED_PROVIDERS,
@@ -14,11 +13,6 @@ from .const import (
 )
 
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH]
-
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up FRITZ!Box Calllist."""
-    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

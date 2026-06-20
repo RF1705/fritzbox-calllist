@@ -13,6 +13,9 @@
     }
   },
   "options": {
+    "error": {
+      "callmonitor_already_configured": "Deze oproepmonitor-sensor wordt al gebruikt door een andere FRITZ!Box Calllist."
+    },
     "step": {
       "init": {
         "title": "FRITZ!Box Calllist configureren",
@@ -23,8 +26,5 @@
         }
       }
     }
-  },
-  "error": {
-    "callmonitor_already_configured": "Deze oproepmonitor-sensor wordt al gebruikt door een andere FRITZ!Box Calllist."
   }
 }

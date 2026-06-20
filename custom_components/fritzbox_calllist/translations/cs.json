@@ -13,6 +13,9 @@
     }
   },
   "options": {
+    "error": {
+      "callmonitor_already_configured": "Tento senzor monitoru hovorů již používá jiná FRITZ!Box Calllist."
+    },
     "step": {
       "init": {
         "title": "Nastavit FRITZ!Box Calllist",
@@ -23,8 +26,5 @@
         }
       }
     }
-  },
-  "error": {
-    "callmonitor_already_configured": "Tento senzor monitoru hovorů již používá jiná FRITZ!Box Calllist."
   }
 }

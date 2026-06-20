@@ -13,6 +13,9 @@
     }
   },
   "options": {
+    "error": {
+      "callmonitor_already_configured": "Questo sensore del monitor chiamate è già utilizzato da un'altra FRITZ!Box Calllist."
+    },
     "step": {
       "init": {
         "title": "Configura FRITZ!Box Calllist",
@@ -23,8 +26,5 @@
         }
       }
     }
-  },
-  "error": {
-    "callmonitor_already_configured": "Questo sensore del monitor chiamate è già utilizzato da un'altra FRITZ!Box Calllist."
   }
 }
