@@ -43,10 +43,9 @@ _PROVIDERS: dict[str, LookupProvider] = {
         key="dasoertliche.de",
         url="https://www.dasoertliche.de/?form_name=search_inv&ph={number}",
         patterns=(
-            r'itemprop=["\']name["\'][^>]*>(?P<name>[^<]+)',
-            r'class=["\'][^"\']*(?:hitlnk_name|namelink|name)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
+            r'class=["\'][^"\']*addressblock[^"\']*["\'][\s\S]*?<h1[^>]*>(?P<name>.*?)</h1>',
+            r'class=["\'][^"\']*(?:hitlnk_name|namelink)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
             r'<a[^>]+href=["\'][^"\']*/Detail/[^"\']*["\'][^>]*>(?P<name>[^<]+)',
-            *_COMMON_PATTERNS,
         ),
     ),
     "11880.com": LookupProvider(
