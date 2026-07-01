@@ -205,6 +205,9 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
             step_id="init",
             data_schema=data_schema,
             errors=errors,
+            description_placeholders={
+                "cache_entries": str(len(cache)),
+            },
         )
 
     def _callmonitor_is_configured(self, entity_id: str) -> bool:

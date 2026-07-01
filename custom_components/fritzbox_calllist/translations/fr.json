@@ -19,7 +19,7 @@
     "step": {
       "init": {
         "title": "Configurer FRITZ!Box Calllist",
-        "description": "Modifiez le capteur du moniteur d'appels ou gérez le cache de recherche inversée.",
+        "description": "Modifiez le capteur du moniteur d'appels ou gérez le cache de recherche inversée. Entrées actuelles du cache : {cache_entries}.",
         "data": {
           "callmonitor_entity": "Capteur du moniteur d'appels",
           "cache_action": "Action du cache"

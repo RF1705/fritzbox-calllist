@@ -19,7 +19,7 @@
     "step": {
       "init": {
         "title": "Nastavit FRITZ!Box Calllist",
-        "description": "Změňte senzor monitoru hovorů nebo spravujte mezipaměť zpětného vyhledávání.",
+        "description": "Změňte senzor monitoru hovorů nebo spravujte mezipaměť zpětného vyhledávání. Aktuální položky mezipaměti: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Senzor monitoru hovorů",
           "cache_action": "Akce mezipaměti"

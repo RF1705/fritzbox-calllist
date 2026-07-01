@@ -19,7 +19,7 @@
     "step": {
       "init": {
         "title": "FRITZ!Box Calllist configureren",
-        "description": "Wijzig de oproepmonitor-sensor of beheer de reverse-lookup-cache.",
+        "description": "Wijzig de oproepmonitor-sensor of beheer de reverse-lookup-cache. Huidige cache-items: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Oproepmonitor-sensor",
           "cache_action": "Cache-actie"

@@ -131,6 +131,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             "is_active": live is not None,
             "last_updated": self._last_updated.isoformat(),
             "reverse_lookup_providers": self._reverse_lookup_providers,
+            "reverse_lookup_cache_size": len(self._lookup_cache),
         }
 
     async def async_added_to_hass(self) -> None:
@@ -173,7 +174,12 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
     @callback
     def async_replace_lookup_cache(self, cache: dict[str, str]) -> None:
         """Replace the in-memory reverse lookup cache."""
-        self._lookup_cache = cache
+        removed_numbers = set(self._lookup_cache) - set(cache)
+        self._lookup_cache = dict(cache)
+        for number in removed_numbers:
+            task = self._lookup_tasks.pop(number, None)
+            if task is not None and not task.done():
+                task.cancel()
         self.schedule_update_ha_state()
 
     @callback

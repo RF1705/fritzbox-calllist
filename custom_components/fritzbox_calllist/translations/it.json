@@ -19,7 +19,7 @@
     "step": {
       "init": {
         "title": "Configura FRITZ!Box Calllist",
-        "description": "Cambia il sensore del monitor chiamate o gestisci la cache della ricerca inversa.",
+        "description": "Cambia il sensore del monitor chiamate o gestisci la cache della ricerca inversa. Voci attuali nella cache: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Sensore del monitor chiamate",
           "cache_action": "Azione cache"

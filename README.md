@@ -84,12 +84,18 @@ This feature is opt-in because phone numbers are personal data and are sent to a
 ### Cache Management
 
 The same integration options dialog can be used to manage cached reverse lookup names.
+The options dialog also shows the current number of cached entries. The sensor
+attribute `reverse_lookup_cache_size` exposes the same count without publishing
+cached phone numbers as entity attributes.
 
 You can:
 
 - view cached `name (number)` entries
 - delete one cached entry
 - delete the whole reverse lookup cache
+
+Deleting the cache does not rewrite already stored call history entries. History
+entries contain the name that was known when the call was added.
 
 Provider order:
 

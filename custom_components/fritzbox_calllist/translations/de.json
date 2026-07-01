@@ -19,7 +19,7 @@
     "step": {
       "init": {
         "title": "FRITZ!Box Calllist konfigurieren",
-        "description": "Ändere den Callmonitor-Sensor oder verwalte den Reverse-Lookup-Cache.",
+        "description": "Ändere den Callmonitor-Sensor oder verwalte den Reverse-Lookup-Cache. Aktuelle Cache-Einträge: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Callmonitor-Sensor",
           "cache_action": "Cache-Aktion"

@@ -19,7 +19,7 @@
     "step": {
       "init": {
         "title": "Skonfiguruj FRITZ!Box Calllist",
-        "description": "Zmień czujnik monitora połączeń lub zarządzaj pamięcią podręczną wyszukiwania wstecznego.",
+        "description": "Zmień czujnik monitora połączeń lub zarządzaj pamięcią podręczną wyszukiwania wstecznego. Bieżące wpisy pamięci podręcznej: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Czujnik monitora połączeń",
           "cache_action": "Akcja pamięci podręcznej"

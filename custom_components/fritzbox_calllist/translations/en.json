@@ -19,7 +19,7 @@
     "step": {
       "init": {
         "title": "Configure FRITZ!Box Calllist",
-        "description": "Change the call monitor sensor or manage the reverse lookup cache.",
+        "description": "Change the call monitor sensor or manage the reverse lookup cache. Current cache entries: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Call monitor sensor",
           "cache_action": "Cache action"
