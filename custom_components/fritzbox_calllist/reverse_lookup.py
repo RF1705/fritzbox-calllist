@@ -31,13 +31,6 @@ class LookupProvider:
     skip_prefixes: tuple[str, ...] = ()
 
 
-_COMMON_PATTERNS = (
-    r'itemprop=["\']name["\'][^>]*>(?P<name>[^<]+)',
-    r'<meta[^>]+property=["\']og:title["\'][^>]+content=["\'](?P<name>[^"\']+)',
-    r'<meta[^>]+name=["\']description["\'][^>]+content=["\'](?P<name>[^"\']+)',
-    r'class=["\'][^"\']*(?:hitlnk_name|namelink|name|entry-title|title)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
-)
-
 _PROVIDERS: dict[str, LookupProvider] = {
     "dasoertliche.de": LookupProvider(
         key="dasoertliche.de",
@@ -52,8 +45,7 @@ _PROVIDERS: dict[str, LookupProvider] = {
         key="11880.com",
         url="https://www.11880.com/rueckwaertssuche/{number}",
         patterns=(
-            r'class=["\'][^"\']*(?:result-list-entry__name|result__name|name|headline)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
-            *_COMMON_PATTERNS,
+            r'class=["\'][^"\']*(?:result-list-entry__name|result__name|result__title|entry__name)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
         ),
     ),
     "search.ch": LookupProvider(
@@ -61,7 +53,6 @@ _PROVIDERS: dict[str, LookupProvider] = {
         url="https://tel.search.ch/?was={number}",
         patterns=(
             r'class=["\'][^"\']*(?:tel-name|tel-result-title|name)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
-            *_COMMON_PATTERNS,
         ),
         skip_prefixes=("+49", "+43"),
     ),
@@ -70,7 +61,6 @@ _PROVIDERS: dict[str, LookupProvider] = {
         url="https://www.dasschnelle.at/ergebnisse?what={number}",
         patterns=(
             r'class=["\'][^"\']*(?:result-name|name|headline)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
-            *_COMMON_PATTERNS,
         ),
         skip_prefixes=("+49", "+41"),
     ),
@@ -79,7 +69,6 @@ _PROVIDERS: dict[str, LookupProvider] = {
         url="https://www.herold.at/telefonbuch/telefonnummer/{number}",
         patterns=(
             r'class=["\'][^"\']*(?:name|company-name|heading|headline)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
-            *_COMMON_PATTERNS,
         ),
         skip_prefixes=("+49", "+41"),
     ),
@@ -89,7 +78,6 @@ _PROVIDERS: dict[str, LookupProvider] = {
         patterns=(
             r'<h1[^>]*>(?P<name>[^<]+)</h1>',
             r'class=["\'][^"\']*(?:caller-name|name|headline)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
-            *_COMMON_PATTERNS,
         ),
     ),
 }
