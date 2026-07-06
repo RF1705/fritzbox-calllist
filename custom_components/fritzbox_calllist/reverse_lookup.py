@@ -76,8 +76,8 @@ _PROVIDERS: dict[str, LookupProvider] = {
         key="tellows.de",
         url="https://www.tellows.de/num/{number}",
         patterns=(
-            r'<h1[^>]*>(?P<name>[^<]+)</h1>',
-            r'class=["\'][^"\']*(?:caller-name|name|headline)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
+            r'class=["\'][^"\']*col-lg-9[^"\']*["\'][\s\S]*?<h1[^>]*>(?P<name>.*?)<span[^>]*class=["\'][^"\']*\bhead\b[^"\']*["\']',
+            r'class=["\'][^"\']*(?:caller-name|number-name|score-title__caller)[^"\']*["\'][^>]*>(?P<name>[^<]+)',
         ),
     ),
 }
