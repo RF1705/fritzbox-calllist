@@ -7,7 +7,7 @@
 
 ![FRITZ!Box Calllist logo](custom_components/fritzbox_calllist/brand/icon.png)
 
-A HACS-compatible Home Assistant custom integration for FRITZ!Box call monitor sensors.
+A Home Assistant custom integration for FRITZ!Box call monitor sensors, available directly through HACS.
 
 FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dashboard:
 
@@ -18,24 +18,20 @@ FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dash
 
 ## Installation
 
-### Install with My Home Assistant
+### Install through HACS
 
-[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=RF1705&repository=fritzbox-calllist&category=integration)
-
-### Manual HACS installation
-
-1. Add this repository to HACS as a custom repository:
-
-   ```text
-   https://github.com/RF1705/fritzbox-calllist
-   ```
-
-2. Select the `Integration` category.
-3. Install `FRITZ!Box Calllist`.
+1. Open HACS in Home Assistant.
+2. Search for `FRITZ!Box Calllist`.
+3. Select the integration and choose **Download**.
 4. Restart Home Assistant.
-5. Go to **Settings > Devices & services > Add integration**.
-6. Search for `FRITZ!Box Calllist`.
-7. Select your FRITZ!Box call monitor sensor.
+
+No custom repository needs to be added.
+
+### Add the integration
+
+[![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fritzbox_calllist)
+
+Alternatively, go to **Settings > Devices & services > Add integration**, search for `FRITZ!Box Calllist` and select your FRITZ!Box call monitor sensor.
 
 FRITZ!Box Calllist is a regular Home Assistant integration. It is not registered as a helper.
 
