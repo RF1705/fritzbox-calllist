@@ -29,7 +29,7 @@ No custom repository needs to be added.
 
 ### Add the integration
 
-[![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fritzbox_calllist)
+[![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=fritzbox_calllist)
 
 Alternatively, go to **Settings > Devices & services > Add integration**, search for `FRITZ!Box Calllist` and select your FRITZ!Box call monitor sensor.
 
