@@ -2,6 +2,7 @@
 
 [![HACS](https://github.com/RF1705/fritzbox-calllist/actions/workflows/hacs.yml/badge.svg)](https://github.com/RF1705/fritzbox-calllist/actions/workflows/hacs.yml)
 [![Hassfest](https://github.com/RF1705/fritzbox-calllist/actions/workflows/hassfest.yml/badge.svg)](https://github.com/RF1705/fritzbox-calllist/actions/workflows/hassfest.yml)
+[![GitHub Downloads](https://img.shields.io/github/downloads/RF1705/fritzbox-calllist/total)](https://github.com/RF1705/fritzbox-calllist/releases)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-rf1705-ffdd00?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/rf1705)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
