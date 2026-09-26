@@ -23,8 +23,10 @@ from .const import (
     CONF_CALLMONITOR_ENTITY,
     CONF_MAX_ITEMS,
     CONF_REVERSE_LOOKUP_ENABLED_PROVIDERS,
+    CONF_SHOW_OUTGOING_CALLS,
     DEFAULT_MAX_ITEMS,
     DEFAULT_REVERSE_LOOKUP_PROVIDERS,
+    DEFAULT_SHOW_OUTGOING_CALLS,
     DOMAIN,
     ENDED_STATE,
     LOOKUP_CACHE_VERSION,
@@ -84,6 +86,9 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         self._attr_unique_id = f"{entry.entry_id}_fritzbox_calllist"
         self._callmonitor_entity = entry.data[CONF_CALLMONITOR_ENTITY]
         self._max_items = int(entry.data.get(CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS))
+        self._show_outgoing_calls = bool(
+            entry.options.get(CONF_SHOW_OUTGOING_CALLS, DEFAULT_SHOW_OUTGOING_CALLS)
+        )
         self._history: list[dict[str, Any]] = []
         self._lookup_cache: dict[str, str] = {}
         self._lookup_tasks: dict[str, asyncio.Task[str | None]] = {}
@@ -125,9 +130,15 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return feed attributes."""
         live = self._build_live_call()
+        history = [
+            entry
+            for entry in self._history
+            if self._show_outgoing_calls
+            or entry.get("type") not in {"outgoing", "not_answered"}
+        ][: self._max_items]
         return {
             "callmonitor_entity": self._callmonitor_entity,
-            "history": self._history,
+            "history": history,
             "live": live,
             "is_active": live is not None,
             "last_updated": self._last_updated.isoformat(),
@@ -181,6 +192,12 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             task = self._lookup_tasks.pop(number, None)
             if task is not None and not task.done():
                 task.cancel()
+        self.schedule_update_ha_state()
+
+    @callback
+    def async_set_show_outgoing_calls(self, show_outgoing_calls: bool) -> None:
+        """Show or hide outgoing calls without reloading the integration."""
+        self._show_outgoing_calls = bool(show_outgoing_calls)
         self.schedule_update_ha_state()
 
     @callback
@@ -280,6 +297,12 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             attrs,
             self._active_call_direction,
         )
+        if (
+            not self._show_outgoing_calls
+            and call_type in {"outgoing", "not_answered"}
+        ):
+            return None
+
         number = _number_from_attrs(attrs, call_type)
         name = _name_from_attrs(attrs, call_type, number)
         if is_unknown_name(name):
@@ -303,6 +326,11 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         """Create a feed entry from the state before idle."""
         call_type = _call_type_from_state(previous.state, previous.attributes, direction)
         if call_type is None:
+            return None
+        if (
+            not self._show_outgoing_calls
+            and call_type in {"outgoing", "not_answered"}
+        ):
             return None
 
         number = _number_from_attrs(previous.attributes, call_type)
@@ -343,7 +371,17 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
 
     def _async_start_live_lookup(self, state: State) -> None:
         """Start live reverse lookup if needed."""
-        call_type = _call_type_from_state(state.state, state.attributes)
+        call_type = _call_type_from_state(
+            state.state,
+            state.attributes,
+            self._active_call_direction,
+        )
+        if (
+            not self._show_outgoing_calls
+            and call_type in {"outgoing", "not_answered"}
+        ):
+            return
+
         number = _number_from_attrs(state.attributes, call_type)
         name = _name_from_attrs(state.attributes, call_type, number)
 

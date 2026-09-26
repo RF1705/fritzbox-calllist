@@ -22,7 +22,8 @@
         "description": "Ändere den Callmonitor-Sensor oder verwalte den Reverse-Lookup-Cache. Aktuelle Cache-Einträge: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Callmonitor-Sensor",
-          "cache_action": "Cache-Aktion"
+          "cache_action": "Cache-Aktion",
+          "show_outgoing_calls": "Ausgehende Anrufe anzeigen"
         }
       }
     }

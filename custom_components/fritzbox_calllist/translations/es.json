@@ -22,7 +22,8 @@
         "description": "Cambia el sensor del monitor de llamadas o gestiona la caché de búsqueda inversa. Entradas actuales en caché: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Sensor del monitor de llamadas",
-          "cache_action": "Acción de caché"
+          "cache_action": "Acción de caché",
+          "show_outgoing_calls": "Mostrar llamadas salientes"
         }
       }
     }

@@ -22,7 +22,8 @@
         "description": "Změňte senzor monitoru hovorů nebo spravujte mezipaměť zpětného vyhledávání. Aktuální položky mezipaměti: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Senzor monitoru hovorů",
-          "cache_action": "Akce mezipaměti"
+          "cache_action": "Akce mezipaměti",
+          "show_outgoing_calls": "Zobrazit odchozí hovory"
         }
       }
     }
