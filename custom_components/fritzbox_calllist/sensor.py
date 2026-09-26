@@ -88,6 +88,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         self._lookup_cache: dict[str, str] = {}
         self._lookup_tasks: dict[str, asyncio.Task[str | None]] = {}
         self._active_call_state: State | None = None
+        self._active_call_direction: str | None = None
         self._last_updated = datetime.now(timezone.utc)
         self._remove_listener = None
         self._startup_refresh_unsub: list[Callable[[], None]] = []
@@ -193,6 +194,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
 
         self._callmonitor_entity = entity_id
         self._active_call_state = None
+        self._active_call_direction = None
         self._remove_listener = async_track_state_change_event(
             self.hass,
             [self._callmonitor_entity],
@@ -206,6 +208,12 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         state = self.hass.states.get(self._callmonitor_entity)
         if state is not None and state.state in CALL_STATES:
             self._active_call_state = state
+            if state.state == "ringing":
+                self._active_call_direction = "incoming"
+            elif state.state == "dialing":
+                self._active_call_direction = "outgoing"
+            elif self._active_call_direction is None:
+                self._active_call_direction = _call_direction_from_attrs(state.attributes)
             self._async_start_live_lookup(state)
         self._last_updated = datetime.now(timezone.utc)
         self.schedule_update_ha_state()
@@ -224,6 +232,18 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             return
 
         if new_state.state in CALL_STATES:
+            if new_state.state == "ringing":
+                self._active_call_direction = "incoming"
+            elif new_state.state == "dialing":
+                self._active_call_direction = "outgoing"
+            elif new_state.state == "talking":
+                if old_state is not None and old_state.state == "ringing":
+                    self._active_call_direction = "incoming"
+                elif old_state is not None and old_state.state == "dialing":
+                    self._active_call_direction = "outgoing"
+                elif self._active_call_direction is None:
+                    self._active_call_direction = _call_direction_from_attrs(new_state.attributes)
+
             self._active_call_state = new_state
             self._async_start_live_lookup(new_state)
 
@@ -233,8 +253,14 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
                 if old_state is not None and old_state.state in CALL_STATES
                 else self._active_call_state
             )
+            direction = self._active_call_direction
             self._active_call_state = None
-            entry = await self._entry_from_finished_call(previous) if previous is not None else None
+            self._active_call_direction = None
+            entry = (
+                await self._entry_from_finished_call(previous, direction)
+                if previous is not None
+                else None
+            )
             if entry is not None:
                 self._history = [entry.as_dict(), *self._history][: self._max_items]
                 self.hass.async_create_task(self._store.async_save(self._history))
@@ -249,7 +275,11 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             return None
 
         attrs = state.attributes
-        call_type = _call_type_from_state(state.state, attrs)
+        call_type = _call_type_from_state(
+            state.state,
+            attrs,
+            self._active_call_direction,
+        )
         number = _number_from_attrs(attrs, call_type)
         name = _name_from_attrs(attrs, call_type, number)
         if is_unknown_name(name):
@@ -265,9 +295,13 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             "duration": max(0, int(datetime.now(timezone.utc).timestamp() - started_at)),
         }
 
-    async def _entry_from_finished_call(self, previous: State) -> CallEntry | None:
+    async def _entry_from_finished_call(
+        self,
+        previous: State,
+        direction: str | None,
+    ) -> CallEntry | None:
         """Create a feed entry from the state before idle."""
-        call_type = _call_type_from_state(previous.state, previous.attributes)
+        call_type = _call_type_from_state(previous.state, previous.attributes, direction)
         if call_type is None:
             return None
 
@@ -367,17 +401,26 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         )
 
 
-def _call_type_from_state(state: str, attrs: dict[str, Any]) -> str | None:
+def _call_type_from_state(
+    state: str,
+    attrs: dict[str, Any],
+    direction: str | None = None,
+) -> str | None:
     """Resolve feed call type from FRITZ!Box callmonitor state."""
     if state == "talking":
-        if attrs.get("from") == attrs.get("local_number"):
-            return "outgoing"
-        return "incoming"
+        return direction or _call_direction_from_attrs(attrs)
     if state == "ringing":
         return "missed"
     if state == "dialing":
         return "not_answered"
     return None
+
+
+def _call_direction_from_attrs(attrs: dict[str, Any]) -> str:
+    """Best-effort fallback for active calls without a known transition."""
+    if attrs.get("from") == attrs.get("local_number"):
+        return "outgoing"
+    return "incoming"
 
 
 def _number_from_attrs(attrs: dict[str, Any], call_type: str | None) -> str:
