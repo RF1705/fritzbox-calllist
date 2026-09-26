@@ -22,7 +22,8 @@
         "description": "Wijzig de oproepmonitor-sensor of beheer de reverse-lookup-cache. Huidige cache-items: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Oproepmonitor-sensor",
-          "cache_action": "Cache-actie"
+          "cache_action": "Cache-actie",
+          "show_outgoing_calls": "Uitgaande oproepen tonen"
         }
       }
     }
