@@ -15,7 +15,9 @@ from homeassistant.helpers.storage import Store
 from .const import (
     CONF_CALLMONITOR_ENTITY,
     CONF_MAX_ITEMS,
+    CONF_SHOW_OUTGOING_CALLS,
     DEFAULT_MAX_ITEMS,
+    DEFAULT_SHOW_OUTGOING_CALLS,
     DOMAIN,
     LOOKUP_CACHE_VERSION,
 )
@@ -126,7 +128,7 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
         self._config_entry = config_entry
 
     async def async_step_init(self, user_input: dict | None = None):
-        """Manage the call monitor entity and reverse lookup cache."""
+        """Manage call monitor, outgoing visibility, and reverse lookup cache."""
         cache_store = Store(
             self.hass,
             LOOKUP_CACHE_VERSION,
@@ -156,6 +158,14 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
                     if sensor is not None:
                         sensor.async_set_callmonitor_entity(callmonitor_entity)
 
+            show_outgoing_calls = user_input.get(
+                CONF_SHOW_OUTGOING_CALLS,
+                DEFAULT_SHOW_OUTGOING_CALLS,
+            )
+            sensor = self._sensor
+            if sensor is not None:
+                sensor.async_set_show_outgoing_calls(show_outgoing_calls)
+
             action = user_input.get(CONF_CACHE_ACTION, ACTION_NO_CHANGE)
             cache_changed = False
             if not errors and action == ACTION_CLEAR_ALL:
@@ -181,7 +191,10 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
             if not errors:
                 return self.async_create_entry(
                     title="",
-                    data=dict(self._config_entry.options),
+                    data={
+                        **self._config_entry.options,
+                        CONF_SHOW_OUTGOING_CALLS: show_outgoing_calls,
+                    },
                 )
 
         data_schema = vol.Schema(
@@ -192,6 +205,13 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="sensor")
                 ),
+                vol.Required(
+                    CONF_SHOW_OUTGOING_CALLS,
+                    default=self._config_entry.options.get(
+                        CONF_SHOW_OUTGOING_CALLS,
+                        DEFAULT_SHOW_OUTGOING_CALLS,
+                    ),
+                ): selector.BooleanSelector(),
                 vol.Required(CONF_CACHE_ACTION, default=ACTION_NO_CHANGE): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=self._cache_action_options(cache),
