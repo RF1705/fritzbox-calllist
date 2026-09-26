@@ -9,8 +9,10 @@ DOMAIN: Final = "fritzbox_calllist"
 CONF_CALLMONITOR_ENTITY = "callmonitor_entity"
 CONF_MAX_ITEMS = "max_items"
 CONF_REVERSE_LOOKUP_ENABLED_PROVIDERS = "reverse_lookup_enabled_providers"
+CONF_SHOW_OUTGOING_CALLS = "show_outgoing_calls"
 
 DEFAULT_MAX_ITEMS = 10
+DEFAULT_SHOW_OUTGOING_CALLS = True
 DEFAULT_REVERSE_LOOKUP_PROVIDERS = [
     "dasoertliche.de",
     "11880.com",
