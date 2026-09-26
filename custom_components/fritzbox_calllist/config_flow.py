@@ -162,9 +162,10 @@ class FritzboxCalllistOptionsFlow(config_entries.OptionsFlow):
                 CONF_SHOW_OUTGOING_CALLS,
                 DEFAULT_SHOW_OUTGOING_CALLS,
             )
-            sensor = self._sensor
-            if sensor is not None:
-                sensor.async_set_show_outgoing_calls(show_outgoing_calls)
+            if not errors:
+                sensor = self._sensor
+                if sensor is not None:
+                    sensor.async_set_show_outgoing_calls(show_outgoing_calls)
 
             action = user_input.get(CONF_CACHE_ACTION, ACTION_NO_CHANGE)
             cache_changed = False
