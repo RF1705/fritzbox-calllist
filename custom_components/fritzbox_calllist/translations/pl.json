@@ -22,7 +22,8 @@
         "description": "Zmień czujnik monitora połączeń lub zarządzaj pamięcią podręczną wyszukiwania wstecznego. Bieżące wpisy pamięci podręcznej: {cache_entries}.",
         "data": {
           "callmonitor_entity": "Czujnik monitora połączeń",
-          "cache_action": "Akcja pamięci podręcznej"
+          "cache_action": "Akcja pamięci podręcznej",
+          "show_outgoing_calls": "Pokaż połączenia wychodzące"
         }
       }
     }
