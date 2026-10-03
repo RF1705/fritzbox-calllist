@@ -35,6 +35,9 @@ from .const import (
 from .reverse_lookup import async_reverse_lookup, is_unknown_name, normalize_provider_list
 
 
+ANSWERING_MACHINE_DEVICES = {"6", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49"}
+
+
 @dataclass
 class CallEntry:
     """A stored call entry."""
@@ -230,6 +233,8 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
                 self._active_call_direction = "incoming"
             elif state.state == "dialing":
                 self._active_call_direction = "outgoing"
+            elif state.state == "talking" and _is_answering_machine(state.attributes):
+                self._active_call_direction = "answering_machine"
             elif self._active_call_direction is None:
                 self._active_call_direction = _call_direction_from_attrs(state.attributes)
             self._async_start_live_lookup(state)
@@ -256,11 +261,19 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
                 self._active_call_direction = "outgoing"
             elif new_state.state == "talking":
                 if old_state is not None and old_state.state == "ringing":
-                    self._active_call_direction = "incoming"
+                    self._active_call_direction = (
+                        "answering_machine"
+                        if _is_answering_machine(new_state.attributes)
+                        else "incoming"
+                    )
                 elif old_state is not None and old_state.state == "dialing":
                     self._active_call_direction = "outgoing"
                 elif self._active_call_direction is None:
-                    self._active_call_direction = _call_direction_from_attrs(new_state.attributes)
+                    self._active_call_direction = (
+                        "answering_machine"
+                        if _is_answering_machine(new_state.attributes)
+                        else _call_direction_from_attrs(new_state.attributes)
+                    )
 
             self._active_call_state = new_state
             self._async_start_live_lookup(new_state)
@@ -457,6 +470,11 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         )
 
 
+def _is_answering_machine(attrs: dict[str, Any]) -> bool:
+    """Return whether the connected device is a FRITZ!Box answering machine."""
+    return str(attrs.get("device", "")).strip() in ANSWERING_MACHINE_DEVICES
+
+
 def _call_type_from_state(
     state: str,
     attrs: dict[str, Any],
@@ -573,6 +591,8 @@ def _text_for_call(call_type: str, name: str, number: str, duration: int | None)
         return f"Gespräch mit {name} ({number}){duration_text}"
     if call_type == "incoming":
         return f"Anruf von {name} ({number}){duration_text}"
+    if call_type == "answering_machine":
+        return f"Anrufbeantworter: {name} ({number}){duration_text}"
     if call_type == "missed":
         return f"Verpasster Anruf von {name} ({number})"
     return f"Nicht erreicht: {name} ({number})"
