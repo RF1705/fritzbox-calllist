@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
-import re
 from datetime import datetime, timezone
 from typing import Any
 
@@ -492,7 +492,7 @@ def _prefixes_from_attrs(attrs: dict[str, Any]) -> list[str]:
     """Return unique call monitor prefixes."""
     value = attrs.get("prefixes")
     if isinstance(value, str):
-        raw_prefixes = [value]
+        raw_prefixes = value.split(",")
     elif isinstance(value, (list, tuple, set)):
         raw_prefixes = [str(prefix) for prefix in value]
     else:
@@ -520,35 +520,33 @@ def _lookup_number_candidates(
         return [normalized]
 
     unique_prefixes = list(dict.fromkeys(prefixes))
+    specificity = lambda prefix: len(re.sub(r"\D", "", prefix))
+    candidates: list[str] = []
+
     if normalized.startswith("0"):
-        # For national numbers, shorter prefixes are commonly country codes
-        # such as +49. Strip the national trunk prefix before prepending them.
-        ordered_prefixes = sorted(
-            unique_prefixes,
-            key=lambda prefix: len(re.sub(r"\D", "", prefix)),
-        )
-        number_variants = [normalized.lstrip("0"), normalized]
+        # National numbers mainly need a country prefix. Prefer the shortest
+        # configured prefix (for example +49 before +49351) and remove the
+        # national trunk prefix from the number.
+        local_part = normalized.lstrip("0")
+        if local_part:
+            for prefix in sorted(unique_prefixes, key=specificity):
+                candidate = f"{prefix}{local_part}"
+                if candidate != normalized:
+                    candidates.append(candidate)
+                    break
     else:
         # A number without a trunk prefix is likely a local subscriber number.
-        # Prefer the most specific configured prefix, e.g. +49351 over +49.
-        ordered_prefixes = sorted(
-            unique_prefixes,
-            key=lambda prefix: len(re.sub(r"\D", "", prefix)),
-            reverse=True,
-        )
-        number_variants = [normalized]
-
-    candidates: list[str] = []
-    for prefix in ordered_prefixes:
-        for number_variant in number_variants:
-            if not number_variant:
-                continue
-            candidate = f"{prefix}{number_variant}"
+        # Try at most the two most specific configured prefixes. This covers
+        # common pairs such as +49351 and 0351 without multiplying requests for
+        # every configured prefix/provider combination.
+        for prefix in sorted(unique_prefixes, key=specificity, reverse=True):
+            candidate = f"{prefix}{normalized}"
             if candidate != normalized and candidate not in candidates:
                 candidates.append(candidate)
+            if len(candidates) == 2:
+                break
 
-    if normalized not in candidates:
-        candidates.append(normalized)
+    candidates.append(normalized)
     return candidates
 
 
