@@ -15,6 +15,7 @@ FRITZ!Box Calllist turns an existing call monitor sensor into a small phone dash
 - live call state for ringing, dialing and active calls
 - persistent call history
 - call duration for live and completed calls
+- built-in FRITZ!Box answering machine detection from the connected device
 - optional reverse lookup for unknown phone numbers using a configurable provider chain
 
 ## Installation
