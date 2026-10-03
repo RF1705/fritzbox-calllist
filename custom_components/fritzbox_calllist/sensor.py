@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -335,7 +336,8 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
 
         number = _number_from_attrs(previous.attributes, call_type)
         name = _name_from_attrs(previous.attributes, call_type, number)
-        name = await self._async_resolve_name(name, number)
+        prefixes = _prefixes_from_attrs(previous.attributes)
+        name = await self._async_resolve_name(name, number, prefixes)
         duration = None
 
         if previous.state == "talking":
@@ -353,7 +355,12 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
             duration=duration,
         )
 
-    async def _async_resolve_name(self, name: str, number: str) -> str:
+    async def _async_resolve_name(
+        self,
+        name: str,
+        number: str,
+        prefixes: list[str] | None = None,
+    ) -> str:
         """Resolve a display name using cache and optional reverse lookup."""
         if not is_unknown_name(name):
             return name
@@ -364,7 +371,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
         if not self._reverse_lookup_providers:
             return name
 
-        if lookup_name := await self._async_lookup_number(number):
+        if lookup_name := await self._async_lookup_number(number, prefixes):
             return lookup_name
 
         return name
@@ -384,6 +391,7 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
 
         number = _number_from_attrs(state.attributes, call_type)
         name = _name_from_attrs(state.attributes, call_type, number)
+        prefixes = _prefixes_from_attrs(state.attributes)
 
         if not is_unknown_name(name) or self._lookup_cache.get(number):
             return
@@ -393,12 +401,18 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
 
         task = self._lookup_tasks.get(number)
         if task is None or task.done():
-            task = self.hass.async_create_task(self._async_lookup_number(number))
+            task = self.hass.async_create_task(
+                self._async_lookup_number(number, prefixes)
+            )
             self._lookup_tasks[number] = task
 
         task.add_done_callback(lambda _: self.schedule_update_ha_state())
 
-    async def _async_lookup_number(self, number: str) -> str | None:
+    async def _async_lookup_number(
+        self,
+        number: str,
+        prefixes: list[str] | None = None,
+    ) -> str | None:
         """Look up and cache a phone number."""
         if cached_name := self._lookup_cache.get(number):
             return cached_name
@@ -408,12 +422,16 @@ class FritzboxCalllistSensor(SensorEntity, RestoreEntity):
                 return await task
 
         self._lookup_tasks[number] = asyncio.current_task()
+        lookup_name = None
         try:
-            lookup_name = await async_reverse_lookup(
-                self.hass,
-                number,
-                self._reverse_lookup_providers,
-            )
+            for lookup_number in _lookup_number_candidates(number, prefixes):
+                lookup_name = await async_reverse_lookup(
+                    self.hass,
+                    lookup_number,
+                    self._reverse_lookup_providers,
+                )
+                if lookup_name:
+                    break
         finally:
             self._lookup_tasks.pop(number, None)
 
@@ -468,6 +486,68 @@ def _number_from_attrs(attrs: dict[str, Any], call_type: str | None) -> str:
     if call_type == "not_answered":
         return attrs.get("to") or attrs.get("with") or attrs.get("from") or "Unbekannt"
     return attrs.get("with") or attrs.get("from") or attrs.get("to") or "Unbekannt"
+
+
+def _prefixes_from_attrs(attrs: dict[str, Any]) -> list[str]:
+    """Return unique call monitor prefixes."""
+    value = attrs.get("prefixes")
+    if isinstance(value, str):
+        raw_prefixes = value.split(",")
+    elif isinstance(value, (list, tuple, set)):
+        raw_prefixes = [str(prefix) for prefix in value]
+    else:
+        return []
+
+    prefixes: list[str] = []
+    for prefix in raw_prefixes:
+        normalized = re.sub(r"[^\d+]", "", prefix)
+        if normalized and normalized not in prefixes:
+            prefixes.append(normalized)
+    return prefixes
+
+
+def _lookup_number_candidates(
+    number: str,
+    prefixes: list[str] | None,
+) -> list[str]:
+    """Build reverse lookup candidates without changing the displayed number."""
+    normalized = re.sub(r"[^\d+]", "", number or "")
+    if not normalized:
+        return []
+
+    # Already international numbers do not need a local/national prefix.
+    if normalized.startswith("+") or normalized.startswith("00") or not prefixes:
+        return [normalized]
+
+    unique_prefixes = list(dict.fromkeys(prefixes))
+    specificity = lambda prefix: len(re.sub(r"\D", "", prefix))
+    candidates: list[str] = []
+
+    if normalized.startswith("0"):
+        # National numbers mainly need a country prefix. Prefer the shortest
+        # configured prefix (for example +49 before +49351) and remove the
+        # national trunk prefix from the number.
+        local_part = normalized.lstrip("0")
+        if local_part:
+            for prefix in sorted(unique_prefixes, key=specificity):
+                candidate = f"{prefix}{local_part}"
+                if candidate != normalized:
+                    candidates.append(candidate)
+                    break
+    else:
+        # A number without a trunk prefix is likely a local subscriber number.
+        # Try at most the two most specific configured prefixes. This covers
+        # common pairs such as +49351 and 0351 without multiplying requests for
+        # every configured prefix/provider combination.
+        for prefix in sorted(unique_prefixes, key=specificity, reverse=True):
+            candidate = f"{prefix}{normalized}"
+            if candidate != normalized and candidate not in candidates:
+                candidates.append(candidate)
+            if len(candidates) == 2:
+                break
+
+    candidates.append(normalized)
+    return candidates
 
 
 def _name_from_attrs(attrs: dict[str, Any], call_type: str | None, number: str) -> str:

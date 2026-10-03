@@ -74,7 +74,9 @@ The integration creates one disabled-by-default reverse lookup switch per provid
 
 When at least one provider switch is enabled, unknown phone numbers can be sent to the enabled providers for reverse lookup. Results are cached locally in Home Assistant storage, so the same number does not need to be looked up again. If a name is found while a call is still active, the live call display is refreshed and the following history entry uses the cached name as well.
 
-This feature is opt-in because phone numbers are personal data and are sent to a third-party provider.
+For local or national numbers, FRITZ!Box Calllist also uses the `prefixes` exposed by the configured FRITZ!Box Call Monitor sensor to build additional reverse-lookup candidates. This allows a locally dialed number such as `123456` to be looked up as `+49351123456` when an appropriate prefix such as `+49351` is configured. The number shown and stored in the call history remains the original number reported by the call monitor.
+
+This feature is opt-in because phone numbers are personal data and are sent to a third-party provider. Prefix-based lookup can cause additional number variants to be sent to the enabled providers.
 
 ### Cache Management
 
